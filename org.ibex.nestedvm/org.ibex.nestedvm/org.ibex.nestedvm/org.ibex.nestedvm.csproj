@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -33,8 +33,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="GlobalState.cs" />
+    <Compile Include="SecurityManager.cs" />
+    <Compile Include="util\ByteArray.cs" />
     <Compile Include="util\ELF.cs" />
+    <Compile Include="util\File.cs" />
     <Compile Include="util\InodeCache.cs" />
+    <Compile Include="util\InputStream.cs" />
+    <Compile Include="util\Lock.cs" />
+    <Compile Include="util\OutputStream.cs" />
     <Compile Include="util\Platform.cs" />
     <Compile Include="util\Sort.cs" />
     <Compile Include="Interpreter.cs" />
@@ -45,7 +52,5 @@
     <Compile Include="util\Seekable.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="util\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>
