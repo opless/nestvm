@@ -1408,30 +1408,9 @@ namespace org.ibex.nestedvm
 				throw new ErrnoException(EIO);
 			}
 
-			return new SeekableFDAnonymousInnerClassHelper(this, sf, flags, f, data);
+			return new SeekableFdAnonymousInnerClassHelper(this, sf, flags, f, data);
 		}
 
-		private class SeekableFDAnonymousInnerClassHelper : SeekableFD
-		{
-			private readonly Runtime outerInstance;
-
-			private File f;
-			private new object data;
-			private File sf;
-
-			public SeekableFDAnonymousInnerClassHelper(Runtime outerInstance, File sf, int flags, File f, object data) : base(sf, flags)
-			{
-				this.outerInstance = outerInstance;
-				this.f = f;
-				this.data = data;
-				this.sf = sf;
-			}
-
-			protected internal override FStat _fstat()
-			{
-				return outerInstance.hostFStat(f,sf,data);
-			}
-		}
 
 		internal virtual FStat hostFStat(File f, File sf, object data)
 		{
@@ -2273,684 +2252,6 @@ namespace org.ibex.nestedvm
 			}
 		}
 
-		/// <summary>
-		/// File Descriptor class </summary>
-		public abstract class FD
-		{
-			internal int refCount = 1;
-			internal string normalizedPath = null;
-			internal bool deleteOnClose = false;
-
-			public virtual string NormalizedPath
-			{
-				set
-				{
-					normalizedPath = value;
-				}
-				get
-				{
-					return normalizedPath;
-				}
-			}
-
-			public virtual void markDeleteOnClose()
-			{
-				deleteOnClose = true;
-			}
-			public virtual bool MarkedForDeleteOnClose
-			{
-				get
-				{
-					return deleteOnClose;
-				}
-			}
-
-			/// <summary>
-			/// Read some bytes. Should return the number of bytes read, 0 on EOF, or throw an IOException on error </summary>
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int read(byte[] a, int off, int length) throws ErrnoException
-			public virtual int read(sbyte[] a, int off, int length)
-			{
-				throw new ErrnoException(EBADFD);
-			}
-			/// <summary>
-			/// Write. Should return the number of bytes written or throw an IOException on error </summary>
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int write(byte[] a, int off, int length) throws ErrnoException
-			public virtual int write(sbyte[] a, int off, int length)
-			{
-				throw new ErrnoException(EBADFD);
-			}
-
-			/// <summary>
-			/// Seek in the filedescriptor. Whence is SEEK_SET, SEEK_CUR, or SEEK_END. Should return -1 on error or the new position. </summary>
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int seek(int n, int whence) throws ErrnoException
-			public virtual int seek(int n, int whence)
-			{
-				return -1;
-			}
-
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int getdents(byte[] a, int off, int length) throws ErrnoException
-			public virtual int getdents(sbyte[] a, int off, int length)
-			{
-				throw new ErrnoException(EBADFD);
-			}
-
-			/// <summary>
-			/// Return a Seekable object representing this file descriptor (can be read only) 
-			///    This is required for exec() 
-			/// </summary>
-			internal virtual Seekable seekable()
-			{
-				return null;
-			}
-
-			internal FStat cachedFStat = null;
-			public FStat fstat()
-			{
-				if (cachedFStat == null)
-				{
-					cachedFStat = _fstat();
-				}
-				return cachedFStat;
-			}
-
-			protected internal abstract FStat _fstat();
-			public abstract int flags();
-
-			/// <summary>
-			/// Closes the fd </summary>
-			public void close()
-			{
-				if (--refCount == 0)
-				{
-					_close();
-				}
-			}
-			protected internal virtual void _close() // noop
-			{
-			}
-
-			internal virtual FD dup()
-			{
-				refCount++;
-				return this;
-			}
-		}
-
-		/// <summary>
-		/// FileDescriptor class for normal files </summary>
-		public abstract class SeekableFD : FD
-		{
-			internal readonly int flags_Renamed;
-			internal readonly Seekable data;
-
-			internal SeekableFD(Seekable data, int flags)
-			{
-				this.data = data;
-				this.flags_Renamed = flags;
-			}
-
-			protected internal override abstract FStat _fstat();
-			public override int flags()
-			{
-				return flags_Renamed;
-			}
-
-			internal override Seekable seekable()
-			{
-				return data;
-			}
-
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int seek(int n, int whence) throws ErrnoException
-			public override int seek(int n, int whence)
-			{
-				try
-				{
-					switch (whence)
-					{
-							case SEEK_SET:
-								break;
-							case SEEK_CUR:
-								n += data.pos();
-								break;
-							case SEEK_END:
-								n += data.length();
-								break;
-							default:
-								return -1;
-					}
-					data.seek(n);
-					return n;
-				}
-				catch (IOException e)
-				{
-					throw new ErrnoException(ESPIPE);
-				}
-			}
-
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int write(byte[] a, int off, int length) throws ErrnoException
-			public override int write(sbyte[] a, int off, int length)
-			{
-				if ((flags_Renamed & 3) == RD_ONLY)
-				{
-					throw new ErrnoException(EBADFD);
-				}
-				// NOTE: There is race condition here but we can't fix it in pure java
-				if ((flags_Renamed & O_APPEND) != 0)
-				{
-					seek(0,SEEK_END);
-				}
-				try
-				{
-					return data.write(a,off,length);
-				}
-				catch (IOException e)
-				{
-					throw new ErrnoException(EIO);
-				}
-			}
-
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int read(byte[] a, int off, int length) throws ErrnoException
-			public override int read(sbyte[] a, int off, int length)
-			{
-				if ((flags_Renamed & 3) == WR_ONLY)
-				{
-					throw new ErrnoException(EBADFD);
-				}
-				try
-				{
-					int n = data.read(a,off,length);
-					return n < 0 ? 0 : n;
-				}
-				catch (IOException e)
-				{
-					throw new ErrnoException(EIO);
-				}
-			}
-
-			protected internal override void _close() //ignore
-			{
-				try
-				{
-					data.close();
-				}
-				catch (IOException e)
-				{
-				}
-			}
-		}
-
-		public class InputOutputStreamFD : FD
-		{
-			internal readonly InputStream @is;
-			internal readonly OutputStream os;
-
-			public InputOutputStreamFD(InputStream @is) : this(@is,null)
-			{
-			}
-			public InputOutputStreamFD(OutputStream os) : this(null,os)
-			{
-			}
-			public InputOutputStreamFD(InputStream @is, OutputStream os)
-			{
-				this.@is = @is;
-				this.os = os;
-				if (@is == null && os == null)
-				{
-					throw new System.ArgumentException("at least one stream must be supplied");
-				}
-			}
-
-			public override int flags()
-			{
-				if (@is != null && os != null)
-				{
-					return O_RDWR;
-				}
-				if (@is != null)
-				{
-					return O_RDONLY;
-				}
-				if (os != null)
-				{
-					return O_WRONLY;
-				}
-				throw new Exception("should never happen");
-			}
-
-			protected internal override void _close()
-			{
-				if (@is != null) //ignore
-				{
-					try
-					{
-						@is.close();
-					}
-					catch (IOException e)
-					{
-					}
-				}
-				if (os != null) //ignore
-				{
-					try
-					{
-						os.close();
-					}
-					catch (IOException e)
-					{
-					}
-				}
-			}
-
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int read(byte[] a, int off, int length) throws ErrnoException
-			public override int read(sbyte[] a, int off, int length)
-			{
-				if (@is == null)
-				{
-					return base.read(a,off,length);
-				}
-				try
-				{
-					int n = @is.read(a,off,length);
-					return n < 0 ? 0 : n;
-				}
-				catch (IOException e)
-				{
-					throw new ErrnoException(EIO);
-				}
-			}
-
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int write(byte[] a, int off, int length) throws ErrnoException
-			public override int write(sbyte[] a, int off, int length)
-			{
-				if (os == null)
-				{
-					return base.write(a,off,length);
-				}
-				try
-				{
-					os.write(a,off,length);
-					return length;
-				}
-				catch (IOException e)
-				{
-					throw new ErrnoException(EIO);
-				}
-			}
-
-			protected internal override FStat _fstat()
-			{
-				return new SocketFStat();
-			}
-		}
-
-		internal class TerminalFD : InputOutputStreamFD
-		{
-			public TerminalFD(InputStream @is) : this(@is,null)
-			{
-			}
-			public TerminalFD(OutputStream os) : this(null,os)
-			{
-			}
-			public TerminalFD(InputStream @is, OutputStream os) : base(@is,os)
-			{
-			}
-			protected internal override void _close() // noop
-			{
-			}
-      protected internal override FStat _fstat()
-			{
-				return new SocketFStatAnonymousInnerClassHelper(this);
-			}
-
-			private class SocketFStatAnonymousInnerClassHelper : SocketFStat
-			{
-				private readonly TerminalFD outerInstance;
-
-				public SocketFStatAnonymousInnerClassHelper(TerminalFD outerInstance)
-				{
-					this.outerInstance = outerInstance;
-				}
-
-				public override int type()
-				{
-					return S_IFCHR;
-				}
-				public override int mode()
-				{
-					return 0x300;
-				}
-			}
-		}
-
-		// This is pretty inefficient but it is only used for reading from the console on win32
-		internal class Win32ConsoleIS : InputStream
-		{
-			internal int pushedBack = -1;
-			internal readonly InputStream parent;
-			public Win32ConsoleIS(InputStream parent)
-			{
-				this.parent = parent;
-			}
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int read() throws IOException
-			public virtual int read()
-			{
-				if (pushedBack != -1)
-				{
-					int ch = pushedBack;
-					pushedBack = -1;
-					return ch;
-				}
-				int c = parent.read();
-				if (c == '\r' && (c = parent.read()) != '\n')
-				{
-					pushedBack = c;
-					return '\r';
-				}
-				return c;
-			}
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public int read(byte[] buf, int pos, int len) throws IOException
-			public virtual int read(sbyte[] buf, int pos, int len)
-			{
-				bool pb = false;
-				if (pushedBack != -1 && len > 0)
-				{
-					buf[0] = (sbyte) pushedBack;
-					pushedBack = -1;
-					pos++;
-					len--;
-					pb = true;
-				}
-				int n = parent.read(buf,pos,len);
-				if (n == -1)
-				{
-					return pb ? 1 : -1;
-				}
-				for (int i = 0;i < n;i++)
-				{
-					if (buf[pos + i] == '\r')
-					{
-						if (i == n - 1)
-						{
-							int c = parent.read();
-							if (c == '\n')
-							{
-								buf[pos + i] = (sbyte)'\n';
-							}
-							else
-							{
-								pushedBack = c;
-							}
-						}
-						else if (buf[pos + i + 1] == '\n')
-						{
-							Array.Copy(buf,pos + i + 1,buf,pos + i,len - i - 1);
-							n--;
-						}
-					}
-				}
-				return n + (pb ? 1 : 0);
-			}
-		}
-
-		public abstract class FStat
-		{
-			public const int S_IFIFO = 0x10000;
-			public const int S_IFCHR = 0x20000;
-			public const int S_IFDIR = 0x40000;
-			public const int S_IFREG = 0x80000;
-			public const int S_IFSOCK = 0xC0000;
-
-			public virtual int mode()
-			{
-				return 0;
-			}
-			public virtual int nlink()
-			{
-				return 0;
-			}
-			public virtual int uid()
-			{
-				return 0;
-			}
-			public virtual int gid()
-			{
-				return 0;
-			}
-			public virtual int size()
-			{
-				return 0;
-			}
-			public virtual int atime()
-			{
-				return 0;
-			}
-			public virtual int mtime()
-			{
-				return 0;
-			}
-			public virtual int ctime()
-			{
-				return 0;
-			}
-			public virtual int blksize()
-			{
-				return 512;
-			}
-			public virtual int blocks()
-			{
-				return (size() + blksize() - 1) / blksize();
-			}
-
-			public abstract int dev();
-			public abstract int type();
-			public abstract int inode();
-		}
-
-		public class SocketFStat : FStat
-		{
-			public override int dev()
-			{
-				return -1;
-			}
-			public override int type()
-			{
-				return S_IFSOCK;
-			}
-			public override int inode()
-			{
-				return GetHashCode() & 0x7fff;
-			}
-		}
-
-		internal class HostFStat : FStat
-		{
-			internal readonly File f;
-			internal readonly File sf;
-			internal readonly bool executable;
-			public HostFStat(File f, File sf) : this(f,sf,false)
-			{
-			}
-			public HostFStat(File f, bool executable) : this(f,null,executable)
-			{
-			}
-			public HostFStat(File f, File sf, bool executable)
-			{
-				this.f = f;
-				this.sf = sf;
-				this.executable = executable;
-			}
-			public override int dev()
-			{
-				return 1;
-			}
-			public override int inode()
-			{
-        throw new NotImplementedException();
-//				return f.AbsolutePath.GetHashCode() & 0x7fff;
-			}
-			public override int type()
-			{
-        throw new NotImplementedException();
-        //				return f.Directory ? S_IFDIR : S_IFREG;
-			}
-			public override int nlink()
-			{
-				return 1;
-			}
-			public override int mode()
-			{
-        throw new NotImplementedException();
-        /*
-				int mode = 0;
-				bool canread = f.canRead();
-				if (canread && (executable || f.Directory))
-				{
-					mode |= 0x91;
-				}
-				if (canread)
-				{
-					mode |= 0x244;
-				}
-				if (f.canWrite())
-				{
-					mode |= 0x122;
-				}
-				return mode;
-        */    
-			}
-			public override int size()
-			{
-			  try
-			  {
-				return sf != null ? (int)sf.length() : (int)f.length();
-			  }
-			  catch (Exception x)
-			  {
-				return (int)f.length();
-			  }
-			}
-			public override int mtime()
-			{
-        throw new NotImplementedException();
-        //return (int)(f.lastModified() / 1000);
-			}
-		}
-
-		// Exceptions
-		public class ReadFaultException : FaultException
-		{
-			public ReadFaultException(int addr) : base(addr)
-			{
-			}
-		}
-		public class WriteFaultException : FaultException
-		{
-			public WriteFaultException(int addr) : base(addr)
-			{
-			}
-		}
-		public class FaultException : ExecutionException
-		{
-			public readonly int addr;
-			public readonly Exception cause;
-			public FaultException(int addr) : base("fault at: " + toHex(addr))
-			{
-				this.addr = addr;
-				cause = null;
-			}
-			public FaultException(Exception e) : base(e.ToString())
-			{
-				addr = -1;
-				cause = e;
-			}
-		}
-		public class ExecutionException : Exception
-		{
-			internal string message = "(null)";
-			internal string location = "(unknown)";
-			public ExecutionException() // noop
-			{
-			}
-			public ExecutionException(string s)
-			{
-				if (s != null)
-				{
-					message = s;
-				}
-			}
-			internal virtual string Location
-			{
-				set
-				{
-					location = value == null ? "(unknown)" : value;
-				}
-			}
-			public string Message
-			{
-				get
-				{
-					return message + " at " + location;
-				}
-			}
-		}
-		public class CallException : Exception
-		{
-			public CallException(string s) : base(s)
-			{
-			}
-		}
-
-		protected internal class ErrnoException : Exception
-		{
-			public int errno;
-			public ErrnoException(int errno) : base("Errno: " + errno)
-			{
-				this.errno = errno;
-			}
-		}
-
-		// CPU State
-		protected internal class CpuState
-		{
-			public CpuState() // noop
-			{
-			}
-			/* GPRs */
-			public int[] r = new int[32];
-			/* Floating point regs */
-			public int[] f = new int[32];
-			public int hi, lo;
-			public int fcsr;
-			public int pc;
-
-			public virtual CpuState dup()
-			{
-				CpuState c = new CpuState();
-				c.hi = hi;
-				c.lo = lo;
-				c.fcsr = fcsr;
-				c.pc = pc;
-				for (int i = 0;i < 32;i++)
-				{
-						c.r[i] = r[i];
-					c.f[i] = f[i];
-				}
-				return c;
-			}
-		}
-
-		
 
 		// Null pointer check helper function
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
@@ -3042,4 +2343,120 @@ namespace org.ibex.nestedvm
 			return a > b ? a : b;
 		}
 	}
+
+
+
+  /// <summary>
+  /// File Descriptor class </summary>
+  public abstract class FD
+  {
+      internal int refCount = 1;
+      internal string normalizedPath = null;
+      internal bool deleteOnClose = false;
+
+      public virtual string NormalizedPath
+      {
+          set
+          {
+              normalizedPath = value;
+          }
+          get
+          {
+              return normalizedPath;
+          }
+      }
+
+      public virtual void markDeleteOnClose()
+      {
+          deleteOnClose = true;
+      }
+      public virtual bool MarkedForDeleteOnClose
+      {
+          get
+          {
+              return deleteOnClose;
+          }
+      }
+
+      /// <summary>
+      /// Read some bytes. Should return the number of bytes read, 0 on EOF, or throw an IOException on error </summary>
+      //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+      //ORIGINAL LINE: public int read(byte[] a, int off, int length) throws ErrnoException
+      public virtual int read(sbyte[] a, int off, int length)
+      {
+          throw new ErrnoException(EBADFD);
+      }
+      /// <summary>
+      /// Write. Should return the number of bytes written or throw an IOException on error </summary>
+      //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+      //ORIGINAL LINE: public int write(byte[] a, int off, int length) throws ErrnoException
+      public virtual int write(sbyte[] a, int off, int length)
+      {
+          throw new ErrnoException(EBADFD);
+      }
+
+      /// <summary>
+      /// Seek in the filedescriptor. Whence is SEEK_SET, SEEK_CUR, or SEEK_END. Should return -1 on error or the new position. </summary>
+      //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+      //ORIGINAL LINE: public int seek(int n, int whence) throws ErrnoException
+      public virtual int seek(int n, int whence)
+      {
+          return -1;
+      }
+
+      //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+      //ORIGINAL LINE: public int getdents(byte[] a, int off, int length) throws ErrnoException
+      public virtual int getdents(sbyte[] a, int off, int length)
+      {
+          throw new ErrnoException(EBADFD);
+      }
+
+      /// <summary>
+      /// Return a Seekable object representing this file descriptor (can be read only) 
+      ///    This is required for exec() 
+      /// </summary>
+      internal virtual Seekable seekable()
+      {
+          return null;
+      }
+
+      internal FStat cachedFStat = null;
+      public FStat fstat()
+      {
+          if (cachedFStat == null)
+          {
+              cachedFStat = _fstat();
+          }
+          return cachedFStat;
+      }
+
+      protected internal abstract FStat _fstat();
+      public abstract int flags();
+
+      /// <summary>
+      /// Closes the fd </summary>
+      public void close()
+      {
+          if (--refCount == 0)
+          {
+              _close();
+          }
+      }
+      protected internal virtual void _close() // noop
+      {
+      }
+
+      internal virtual FD dup()
+      {
+          refCount++;
+          return this;
+      }
+  }
+
+    // This is pretty inefficient but it is only used for reading from the console on win32
+
+    // Exceptions
+
+
+    // CPU State
 }

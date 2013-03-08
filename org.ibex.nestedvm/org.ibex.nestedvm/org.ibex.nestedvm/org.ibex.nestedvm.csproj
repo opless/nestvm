@@ -33,8 +33,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="CallException.cs" />
+    <Compile Include="CpuState.cs" />
+    <Compile Include="ErrnoException.cs" />
+    <Compile Include="ExecutionException.cs" />
+    <Compile Include="FaultException.cs" />
+    <Compile Include="FStat.cs" />
     <Compile Include="GlobalState.cs" />
+    <Compile Include="HostFStat.cs" />
+    <Compile Include="InputOutputStreamFD.cs" />
+    <Compile Include="ReadFaultException.cs" />
     <Compile Include="SecurityManager.cs" />
+    <Compile Include="SeekableFd.cs" />
+    <Compile Include="SeekableFdAnonymousInnerClassHelper.cs" />
+    <Compile Include="SocketFStat.cs" />
+    <Compile Include="TerminalFD.cs" />
     <Compile Include="util\ByteArray.cs" />
     <Compile Include="util\ELF.cs" />
     <Compile Include="util\File.cs" />
@@ -50,6 +63,8 @@
     <Compile Include="UnixRuntime.cs" />
     <Compile Include="UsermodeConstants.cs" />
     <Compile Include="util\Seekable.cs" />
+    <Compile Include="Win32ConsoleIS.cs" />
+    <Compile Include="WriteFaultException.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

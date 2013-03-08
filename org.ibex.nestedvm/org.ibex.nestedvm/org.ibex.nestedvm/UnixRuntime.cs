@@ -3580,7 +3580,7 @@ namespace org.ibex.nestedvm
 
 			}
 
-			private class SeekableFDAnonymousInnerClassHelper : SeekableFD
+			private class SeekableFDAnonymousInnerClassHelper : SeekableFd
 			{
 				private readonly ResourceFS outerInstance;
 
