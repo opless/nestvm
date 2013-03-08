@@ -6,6 +6,9 @@ using System.Threading;
 // Copyright 2000-2005 the Contributors, as shown in the revision logs.
 // Licensed under the Apache License 2.0 ("the License").
 // You may not use this file except in compliance with the License.
+using System.Net.Sockets;
+using System.Net;
+using System.IO;
 
 namespace org.ibex.nestedvm
 {
@@ -14,7 +17,7 @@ namespace org.ibex.nestedvm
 
 	// FEATURE: vfork
 
-	public abstract class UnixRuntime : Runtime, ICloneable
+	public abstract class UnixRuntime : Runtime //, ICloneable
 	{
 		/// <summary>
 		/// The pid of this "process" </summary>
@@ -36,7 +39,7 @@ namespace org.ibex.nestedvm
 			{
 				if (state != STOPPED)
 				{
-					throw new IllegalStateException("can't change GlobalState when running");
+					throw new ArgumentException("can't change GlobalState when running");
 				}
 				if (value == null)
 				{
@@ -82,8 +85,8 @@ namespace org.ibex.nestedvm
 		private static string posixTZ()
 		{
 			StringBuilder sb = new StringBuilder();
-			TimeZone zone = TimeZone.Default;
-			int off = zone.RawOffset / 1000;
+      TimeZone zone = TimeZone.CurrentTimeZone;//TimeZone.Default;
+      int off = (int)zone.GetUtcOffset(DateTime.Now).TotalSeconds;// Rawoffset/ 1000;
 			sb.Append(Platform.timeZoneGetDisplayName(zone,false,false));
 			if (off > 0)
 			{
@@ -104,8 +107,10 @@ namespace org.ibex.nestedvm
 			{
 				sb.Append(":").Append(off);
 			}
-			if (zone.useDaylightTime())
-			{
+      //if (zone.useDaylightTime())
+      // probably wrong.
+      if (zone.GetDaylightChanges(DateTime.Now.Year).Delta.TotalSeconds > 0)
+      {
 				sb.Append(Platform.timeZoneGetDisplayName(zone,true,false));
 			}
 			return sb.ToString();
@@ -363,10 +368,10 @@ namespace org.ibex.nestedvm
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: private int sys_access(int cstring, int mode) throws ErrnoException, ReadFaultException
-		private int sys_access(int cstring, int mode)
+		private int sys_access(int cstringArg, int mode)
 		{
 			// FEATURE: sys_access
-			return gs.stat(this,normalizePath(cstring(cstring))) == null ? - ENOENT : 0;
+			return gs.stat(this,normalizePath(cstring(cstringArg))) == null ? - ENOENT : 0;
 		}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
@@ -480,10 +485,11 @@ namespace org.ibex.nestedvm
 						}
 						if (t.state == EXITED)
 						{
-							if (!exitedChildren.Remove(t))
-							{
-								throw new Exception("should never happen");
-							}
+              throw new NotImplementedException();
+//							if (!exitedChildren.Remove(t))
+//							{
+//								throw new Exception("should never happen");
+//							}
 							done = t;
 						}
 					}
@@ -502,7 +508,7 @@ namespace org.ibex.nestedvm
 						{
 							Monitor.Wait(children);
 						}
-						catch (InterruptedException e)
+						catch (ThreadInterruptedException e)
 						{
 						}
 						//System.err.println("waitpid woke up: " + exitedChildren.size());
@@ -528,6 +534,7 @@ namespace org.ibex.nestedvm
 			{
 				lock (children)
 				{
+          /*
 				for (System.Collections.IEnumerator e = exitedChildren.elements(); e.hasMoreElements();)
 				{
 					UnixRuntime child = (UnixRuntime) e.nextElement();
@@ -540,6 +547,8 @@ namespace org.ibex.nestedvm
 					child.parent = null;
 				}
 				activeChildren.Clear();
+    */
+          throw new NotImplementedException();
 				}
 			}
 
@@ -558,10 +567,12 @@ namespace org.ibex.nestedvm
 					}
 					else
 					{
+            /*
 						if (!parent.activeChildren.Remove(this))
 						{
 							throw new Exception("should never happen _exited: pid: " + pid);
 						}
+      */ throw new NotImplementedException();      
 						parent.exitedChildren.Add(this);
 						Monitor.Pulse(parent.children);
 					}
@@ -618,7 +629,7 @@ namespace org.ibex.nestedvm
 			}
 			activeChildren.Add(r);
 
-			CPUState state = new CPUState();
+			CpuState state = new CpuState();
 			getCPUState(state);
 			state.r[V0] = 0; // return 0 to child
 			state.pc += 4; // skip over syscall instruction
@@ -630,13 +641,14 @@ namespace org.ibex.nestedvm
 			return r.pid;
 		}
 
-		public sealed class ForkedProcess : System.Threading.Thread
+		public sealed class ForkedProcess //: System.Threading.Thread
 		{
 			internal readonly UnixRuntime initial;
 			public ForkedProcess(UnixRuntime initial)
 			{
 				this.initial = initial;
-				start();
+				//start();
+        throw new NotImplementedException();
 			}
 			public void run()
 			{
@@ -701,9 +713,10 @@ namespace org.ibex.nestedvm
 			return exec(normalizePath(cstring(cpath)),readStringArray(cargv),readStringArray(cenvp));
 		}
 
-		private static readonly Method runtimeCompilerCompile;
+		//private static readonly Method runtimeCompilerCompile;
 		static UnixRuntime()
 		{
+      /*
 			Method m;
 			try
 			{
@@ -718,12 +731,16 @@ namespace org.ibex.nestedvm
 				m = null;
 			}
 			runtimeCompilerCompile = m;
+   */
+      throw new NotImplementedException();
 		}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public Class runtimeCompile(Seekable s, String sourceName) throws IOException
 		public virtual Type runtimeCompile(Seekable s, string sourceName)
 		{
+      throw new NotImplementedException();
+      /*
 			if (runtimeCompilerCompile == null)
 			{
 				if (STDERR_DIAG)
@@ -731,6 +748,7 @@ namespace org.ibex.nestedvm
 					Console.Error.WriteLine("WARNING: Exec attempted but RuntimeCompiler not found!");
 				}
 				return null;
+
 			}
 
 			try
@@ -765,7 +783,8 @@ namespace org.ibex.nestedvm
 				}
 				return null;
 			}
-		}
+    */    
+    }
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: private int exec(String path, String[] argv, String[] envp) throws ErrnoException
@@ -837,7 +856,7 @@ namespace org.ibex.nestedvm
 
 				switch (buf[0])
 				{
-					case '\177': // possible ELF
+					case 0x7f: //'\177': // possible ELF
 						if (n < 4)
 						{
 							s.tryReadFully(buf,n,4 - n);
@@ -862,7 +881,7 @@ namespace org.ibex.nestedvm
 						}
 						gs.execCache[path] = new GlobalState.CacheEnt(mtime,size,c);
 						return execClass(c,argv,envp);
-					case '#':
+					case (sbyte)'#':
 						if (n == 1)
 						{
 							int n2 = s.read(buf,1,buf.Length - 1);
@@ -922,7 +941,12 @@ namespace org.ibex.nestedvm
 						{
 							argStart++;
 						}
-						string[] command = new string[] {new string(buf,cmdStart,cmdEnd - cmdStart), argStart < p ? new string(buf,argStart,p - argStart) : null};
+            throw new NotImplementedException();
+            string[] command = null;
+//						string[] command = new string[] {
+//              new string(buf,cmdStart,cmdEnd - cmdStart), 
+//              argStart < p ? new string(buf,argStart,p - argStart) : null
+//            };
 						gs.execCache[path] = new GlobalState.CacheEnt(mtime,size,command);
 						return execScript(path,command,argv,envp);
 					default:
@@ -972,8 +996,9 @@ namespace org.ibex.nestedvm
 		{
 			try
 			{
-				UnixRuntime r = (UnixRuntime) c.getDeclaredConstructor(new Type[]{bool.TYPE}).newInstance(new object[]{true});
-				return exec(r,argv,envp);
+        throw new NotImplementedException();
+//				UnixRuntime r = (UnixRuntime) c.getDeclaredConstructor(new Type[]{bool.TYPE}).newInstance(new object[]{true});
+//				return exec(r,argv,envp);
 			}
 			catch (Exception e)
 			{
@@ -1047,7 +1072,7 @@ namespace org.ibex.nestedvm
 					this.outerInstance = outerInstance;
 				}
 
-				protected internal virtual FStat _fstat()
+				protected internal override FStat _fstat()
 				{
 					return new SocketFStat();
 				}
@@ -1067,7 +1092,7 @@ namespace org.ibex.nestedvm
 							{
 								Monitor.Wait(outerInstance);
 							}
-							catch (InterruptedException e)
+							catch (ThreadInterruptedException e)
 							{
 							}
 						}
@@ -1085,7 +1110,7 @@ namespace org.ibex.nestedvm
 						return len;
 					}
 				}
-				public virtual int flags()
+				public override int flags()
 				{
 					return O_RDONLY;
 				}
@@ -1108,7 +1133,7 @@ namespace org.ibex.nestedvm
 					this.outerInstance = outerInstance;
 				}
 
-				protected internal virtual FStat _fstat()
+				protected internal override FStat _fstat()
 				{
 					return new SocketFStat();
 				}
@@ -1135,7 +1160,7 @@ namespace org.ibex.nestedvm
 								{
 									Monitor.Wait(outerInstance);
 								}
-								catch (InterruptedException e)
+								catch (ThreadInterruptedException e)
 								{
 								}
 							}
@@ -1155,7 +1180,7 @@ namespace org.ibex.nestedvm
 						return len;
 					}
 				}
-				public virtual int flags()
+				public override int flags()
 				{
 					return O_WRONLY;
 				}
@@ -1248,9 +1273,9 @@ namespace org.ibex.nestedvm
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: private int sys_stat(int cstring, int addr) throws FaultException, ErrnoException
-		private int sys_stat(int cstring, int addr)
+		private int sys_stat(int cstringArg, int addr)
 		{
-			FStat s = gs.stat(this,normalizePath(cstring(cstring)));
+			FStat s = gs.stat(this,normalizePath(cstring(cstringArg)));
 			if (s == null)
 			{
 				return -ENOENT;
@@ -1260,9 +1285,9 @@ namespace org.ibex.nestedvm
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: private int sys_lstat(int cstring, int addr) throws FaultException, ErrnoException
-		private int sys_lstat(int cstring, int addr)
+		private int sys_lstat(int cstringArg, int addr)
 		{
-			FStat s = gs.lstat(this,normalizePath(cstring(cstring)));
+			FStat s = gs.lstat(this,normalizePath(cstring(cstringArg)));
 			if (s == null)
 			{
 				return -ENOENT;
@@ -1272,17 +1297,17 @@ namespace org.ibex.nestedvm
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: private int sys_mkdir(int cstring, int mode) throws FaultException, ErrnoException
-		private int sys_mkdir(int cstring, int mode)
+    private int sys_mkdir(int cstringArg, int mode)
 		{
-			gs.mkdir(this,normalizePath(cstring(cstring)),mode);
+      gs.mkdir(this,normalizePath(cstring(cstringArg)),mode);
 			return 0;
 		}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: private int sys_unlink(int cstring) throws FaultException, ErrnoException
-		private int sys_unlink(int cstring)
+    private int sys_unlink(int cstringArg)
 		{
-			gs.unlink(this,normalizePath(cstring(cstring)));
+      gs.unlink(this,normalizePath(cstring(cstringArg)));
 			return 0;
 		}
 
@@ -1355,7 +1380,7 @@ namespace org.ibex.nestedvm
 			{
 				for (int i = 0; i < gs.locks.Length; i++)
 				{
-					Seekable.Lock l = gs.locks[i];
+					Lock l = gs.locks[i];
 					if (l == null)
 					{
 						continue;
@@ -1369,7 +1394,7 @@ namespace org.ibex.nestedvm
 			}
 			catch (IOException e)
 			{
-				throw new Exception(e);
+				throw new Exception("oops",e);
 			}
 		}
 
@@ -1404,6 +1429,7 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: private int sys_fcntl_lock(int fdn, int cmd, int arg) throws FaultException
 		private int sys_fcntl_lock(int fdn, int cmd, int arg)
 		{
+      /*
 			if (cmd != F_GETLK && cmd != F_SETLK)
 			{
 				return sys_fcntl(fdn, cmd, arg);
@@ -1535,34 +1561,34 @@ namespace org.ibex.nestedvm
 			else if (l_type == F_RDLCK || l_type == F_WRLCK)
 			{
 				// first see if a lock already exists
-				for (int i = 0; i < locks.Length; i++)
+				for (int j = 0; j < locks.Length; j++)
 				{
-					if (locks[i] == null || !s.Equals(locks[i].seekable()))
+					if (locks[j] == null || !s.Equals(locks[j].seekable()))
 					{
 						continue;
 					}
 
-					if (locks[i].Owner == this)
+					if (locks[j].Owner == this)
 					{
 						// if this Runtime owns an overlapping lock work with it
-						if (locks[i].contained(l_start, l_len))
+						if (locks[j].contained(l_start, l_len))
 						{
-							locks[i].release();
-							locks[i] = null;
+							locks[j].release();
+							locks[j] = null;
 						}
-						else if (locks[i].contains(l_start, l_len))
+						else if (locks[j].contains(l_start, l_len))
 						{
-							if (locks[i].Shared == (l_type == F_RDLCK))
+							if (locks[j].Shared == (l_type == F_RDLCK))
 							{
 								// return this more general lock
-								memWrite(arg + 4, (int)locks[i].position());
-								memWrite(arg + 8, (int)locks[i].size());
+								memWrite(arg + 4, (int)locks[j].position());
+								memWrite(arg + 8, (int)locks[j].size());
 								return 0;
 							}
 							else
 							{
-								locks[i].release();
-								locks[i] = null;
+								locks[j].release();
+								locks[j] = null;
 							}
 						}
 					}
@@ -1570,7 +1596,7 @@ namespace org.ibex.nestedvm
 					{
 						// if another Runtime has an lock and it is exclusive or
 						// we want an exclusive lock then fail
-						if (locks[i].overlaps(l_start, l_len) && (!locks[i].Shared || l_type == F_WRLCK))
+						if (locks[j].overlaps(l_start, l_len) && (!locks[j].Shared || l_type == F_WRLCK))
 						{
 							return -EAGAIN;
 						}
@@ -1611,6 +1637,8 @@ namespace org.ibex.nestedvm
 			{
 				throw new Exception(e);
 			}
+   */
+      throw new NotImplementedException();
 		}
 
 		internal class SocketFD : FD
@@ -1631,15 +1659,15 @@ namespace org.ibex.nestedvm
 			internal int options;
 
 			internal Socket s;
-			internal ServerSocket ss;
-			internal DatagramSocket ds;
+			internal Socket ss;
+      internal Socket ds;
 
-			internal InetAddress bindAddr;
+			internal IPAddress bindAddr;
 			internal int bindPort = -1;
-			internal InetAddress connectAddr;
+			internal IPAddress connectAddr;
 			internal int connectPort = -1;
 
-			internal DatagramPacket dp;
+			internal byte[] dp;
 			internal InputStream @is;
 			internal OutputStream os;
 
@@ -1649,7 +1677,7 @@ namespace org.ibex.nestedvm
 				flags_Renamed = type;
 				if (type == TYPE_DGRAM)
 				{
-					dp = new DatagramPacket(EMPTY,0);
+          dp = new byte[0];//new DatagramPacket(EMPTY,0);
 				}
 			}
 
@@ -1678,15 +1706,15 @@ namespace org.ibex.nestedvm
 				{
 				   if (s != null)
 				   {
-					   s.close();
+					   s.Close();
 				   }
 				   if (ss != null)
 				   {
-					   ss.close();
+            ss.Close();
 				   }
 				   if (ds != null)
 				   {
-					   ds.close();
+            ds.Close();
 				   }
 				}
 				catch (IOException e)
@@ -1720,8 +1748,9 @@ namespace org.ibex.nestedvm
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public int recvfrom(byte[] a, int off, int length, InetAddress[] sockAddr, int[] port) throws ErrnoException
-			public virtual int recvfrom(sbyte[] a, int off, int length, InetAddress[] sockAddr, int[] port)
+			public virtual int recvfrom(sbyte[] a, int off, int length, IPAddress[] sockAddr, int[] port)
 			{
+        /*
 				if (type() == TYPE_STREAM)
 				{
 					return read(a,off,length);
@@ -1756,6 +1785,7 @@ namespace org.ibex.nestedvm
 					port[0] = dp.Port;
 				}
 				return dp.Length;
+    */ throw new NotImplementedException();    
 			}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
@@ -1784,8 +1814,9 @@ namespace org.ibex.nestedvm
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public int sendto(byte[] a, int off, int length, InetAddress destAddr, int destPort) throws ErrnoException
-			public virtual int sendto(sbyte[] a, int off, int length, InetAddress destAddr, int destPort)
+			public virtual int sendto(sbyte[] a, int off, int length, IPAddress destAddr, int destPort)
 			{
+
 				if (off != 0)
 				{
 					throw new System.ArgumentException("off must be 0");
@@ -1805,7 +1836,8 @@ namespace org.ibex.nestedvm
 						throw new ErrnoException(ENOTCONN);
 					}
 				}
-
+        throw new NotImplementedException();
+        /*
 				dp.Address = destAddr;
 				dp.Port = destPort;
 				dp.Data = a;
@@ -1832,14 +1864,15 @@ namespace org.ibex.nestedvm
 					}
 					throw new ErrnoException(EIO);
 				}
+    */    
 				return dp.Length;
 			}
 
-			public virtual int flags()
+			public override int flags()
 			{
 				return O_RDWR;
 			}
-			public virtual FStat _fstat()
+			protected internal override FStat _fstat()
 			{
 				return new SocketFStat();
 			}
@@ -1893,12 +1926,12 @@ namespace org.ibex.nestedvm
 			sbyte[] ip = new sbyte[4];
 			copyin(addr + 4,ip,4);
 
-			InetAddress inetAddr;
+			IPAddress inetAddr;
 			try
 			{
 				inetAddr = Platform.inetAddressFromBytes(ip);
 			}
-			catch (UnknownHostException e)
+			catch (Exception e)
 			{
 				return -EADDRNOTAVAIL;
 			}
@@ -1912,11 +1945,13 @@ namespace org.ibex.nestedvm
 				{
 					case SocketFD.TYPE_STREAM:
 					{
-						Socket s = new Socket(inetAddr,port);
-						fd.s = s;
+            throw new NotImplementedException(); 
+
+						//Socket s = new Socket(inetAddr,port);
+						//fd.s = s;
 						fd.setOptions();
-						fd.@is = s.InputStream;
-						fd.os = s.OutputStream;
+//						fd.@is = s.InputStream;
+//						fd.os = s.OutputStream;
 						break;
 					}
 					case SocketFD.TYPE_DGRAM:
@@ -1937,6 +1972,7 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: private int sys_resolve_hostname(int chostname, int addr, int sizeAddr) throws FaultException
 		private int sys_resolve_hostname(int chostname, int addr, int sizeAddr)
 		{
+      /*
 			string hostname = cstring(chostname);
 			int size = memRead(sizeAddr);
 			InetAddress[] inetAddrs;
@@ -1956,6 +1992,7 @@ namespace org.ibex.nestedvm
 			}
 			memWrite(sizeAddr,count * 4);
 			return 0;
+   */ throw new NotImplementedException();   
 		}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
@@ -2058,7 +2095,7 @@ namespace org.ibex.nestedvm
 				return -EAFNOSUPPORT;
 			}
 			int port = word1 & 0xffff;
-			InetAddress inetAddr = null;
+			IPAddress inetAddr = null;
 			if (memRead(addr + 4) != 0)
 			{
 				sbyte[] ip = new sbyte[4];
@@ -2068,7 +2105,7 @@ namespace org.ibex.nestedvm
 				{
 					inetAddr = Platform.inetAddressFromBytes(ip);
 				}
-				catch (UnknownHostException e)
+				catch (Exception e)
 				{
 					return -EADDRNOTAVAIL;
 				}
@@ -2086,11 +2123,13 @@ namespace org.ibex.nestedvm
 				{
 					if (fd.ds != null)
 					{
-						fd.ds.close();
+            throw new NotImplementedException();
+						//fd.ds.close();
 					}
 					try
 					{
-						fd.ds = inetAddr != null ? new DatagramSocket(port,inetAddr) : new DatagramSocket(port);
+            throw new NotImplementedException();
+            //fd.ds = inetAddr != null ? new DatagramSocket(port,inetAddr) : new DatagramSocket(port);
 					}
 					catch (IOException e)
 					{
@@ -2123,7 +2162,8 @@ namespace org.ibex.nestedvm
 
 			try
 			{
-				fd.ss = new ServerSocket(fd.bindPort,backlog,fd.bindAddr);
+        throw new NotImplementedException();
+        //fd.ss = new ServerSocket(fd.bindPort,backlog,fd.bindAddr);
 				fd.flags_Renamed |= SocketFD.LISTEN;
 				return 0;
 			}
@@ -2138,6 +2178,8 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: private int sys_accept(int fdn, int addr, int lenaddr) throws ErrnoException, FaultException
 		private int sys_accept(int fdn, int addr, int lenaddr)
 		{
+      throw new NotImplementedException();
+      /*
 			SocketFD fd = getSocketFD(fdn);
 			if (fd.type() != SocketFD.TYPE_STREAM)
 			{
@@ -2150,11 +2192,11 @@ namespace org.ibex.nestedvm
 
 			int size = memRead(lenaddr);
 
-			ServerSocket s = fd.ss;
+      ServerSocket s = fd.ss;
 			Socket client;
 			try
 			{
-				client = s.accept();
+        client = s.accept();
 			}
 			catch (IOException e)
 			{
@@ -2187,6 +2229,7 @@ namespace org.ibex.nestedvm
 				return -ENFILE;
 			}
 			return n;
+   */   
 		}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
@@ -2240,14 +2283,14 @@ namespace org.ibex.nestedvm
 				return -EAFNOSUPPORT;
 			}
 			int port = word1 & 0xffff;
-			InetAddress inetAddr;
+			IPAddress inetAddr;
 			sbyte[] ip = new sbyte[4];
 			copyin(destAddr + 4,ip,4);
 			try
 			{
 				inetAddr = Platform.inetAddressFromBytes(ip);
 			}
-			catch (UnknownHostException e)
+			catch (Exception e)
 			{
 				return -EADDRNOTAVAIL;
 			}
@@ -2279,7 +2322,7 @@ namespace org.ibex.nestedvm
 				throw new ErrnoException(EINVAL);
 			}
 
-			InetAddress[] inetAddr = sourceAddr == 0 ? null : new InetAddress[1];
+			IPAddress[] inetAddr = sourceAddr == 0 ? null : new IPAddress[1];
 			int[] port = sourceAddr == 0 ? null : new int[1];
 
 			count = Math.Min(count,MAX_CHUNK);
@@ -2290,7 +2333,9 @@ namespace org.ibex.nestedvm
 			if (sourceAddr != 0)
 			{
 				memWrite(sourceAddr,(AF_INET << 16) | port[0]);
-				sbyte[] ip = inetAddr[0].Address;
+        byte[] foo =inetAddr[0].GetAddressBytes();
+        sbyte[] ip =  new sbyte[foo.Length]; //inetAddr[0].Address;
+        Array.Copy(foo,ip,foo.Length);
 				copyout(ip,sourceAddr + 4,4);
 			}
 
@@ -2308,9 +2353,9 @@ namespace org.ibex.nestedvm
 		{
 			try
 			{
-				return InetAddress.LocalHost.HostName;
+        return "localhost";//TODO: InetAddress.LocalHost.HostName;
 			}
-			catch (UnknownHostException e)
+			catch (Exception e)
 			{
 				return "darkstar";
 			}
@@ -2401,347 +2446,6 @@ namespace org.ibex.nestedvm
 			return 0;
 		}
 
-		public sealed class GlobalState
-		{
-			internal Hashtable execCache = new Hashtable();
-
-			internal readonly UnixRuntime[] tasks;
-			internal int nextPID = 1;
-
-			/// <summary>
-			/// Table of all current file locks held by this process. </summary>
-			internal Seekable.Lock[] locks = new Seekable.Lock[16];
-
-			internal MP[] mps = new MP[0];
-			internal FS root;
-
-			public GlobalState() : this(255)
-			{
-			}
-			public GlobalState(int maxProcs) : this(maxProcs,true)
-			{
-			}
-			public GlobalState(int maxProcs, bool defaultMounts)
-			{
-				tasks = new UnixRuntime[maxProcs + 1];
-				if (defaultMounts)
-				{
-					File root = null;
-					if (Platform.getProperty("nestedvm.root") != null)
-					{
-						root = new File(Platform.getProperty("nestedvm.root"));
-						if (!root.Directory)
-						{
-							throw new System.ArgumentException("nestedvm.root is not a directory");
-						}
-					}
-					else
-					{
-						string cwd = Platform.getProperty("user.dir");
-						root = Platform.getRoot(new File(cwd != null ? cwd : "."));
-					}
-
-					addMount("/",new HostFS(root));
-
-					if (Platform.getProperty("nestedvm.root") == null)
-					{
-						File[] roots = Platform.listRoots();
-						for (int i = 0;i < roots.Length;i++)
-						{
-							string name = roots[i].Path;
-							if (name.EndsWith(File.separator))
-							{
-								name = name.Substring(0,name.Length - 1);
-							}
-							if (name.Length == 0 || name.IndexOf('/') != -1)
-							{
-								continue;
-							}
-							addMount("/" + name.ToLower(),new HostFS(roots[i]));
-						}
-					}
-
-					addMount("/dev",new DevFS());
-					addMount("/resource",new ResourceFS());
-					addMount("/cygdrive",new CygdriveFS());
-				}
-			}
-
-			public string mapHostPath(string s)
-			{
-				return mapHostPath(new File(s));
-			}
-			public string mapHostPath(File f)
-			{
-				MP[] list;
-				FS root;
-				lock (this)
-				{
-					mps = this.mps;
-					root = this.root;
-				}
-				if (!f.Absolute)
-				{
-					f = new File(f.AbsolutePath);
-				}
-				for (int i = mps.Length;i >= 0;i--)
-				{
-					FS fs = i == mps.Length ? root : mps[i].fs;
-					string path = i == mps.Length ? "" : mps[i].path;
-					if (!(fs is HostFS))
-					{
-						continue;
-					}
-					File fsroot = ((HostFS)fs).Root;
-					if (!fsroot.Absolute)
-					{
-						fsroot = new File(fsroot.AbsolutePath);
-					}
-					if (f.Path.StartsWith(fsroot.Path))
-					{
-						char sep = System.IO.Path.DirectorySeparatorChar;
-						string child = f.Path.Substring(fsroot.Path.length());
-						if (sep != '/')
-						{
-							char[] child_ = child.ToCharArray();
-							for (int j = 0;j < child_.Length;j++)
-							{
-								if (child_[j] == '/')
-								{
-									child_[j] = sep;
-								}
-								else if (child_[j] == sep)
-								{
-									child_[j] = '/';
-								}
-							}
-							child = new string(child_);
-						}
-						string mapped = "/" + (path.Length == 0?"":path + "/") + child;
-						return mapped;
-					}
-				}
-				return null;
-			}
-
-			internal class MP : Sort.Comparable
-			{
-				public MP(string path, FS fs)
-				{
-					this.path = path;
-					this.fs = fs;
-				}
-				public string path;
-				public FS fs;
-				public virtual int compareTo(object o)
-				{
-					if (!(o is MP))
-					{
-						return 1;
-					}
-					return -path.CompareTo(((MP)o).path);
-				}
-			}
-
-			public FS getMount(string path)
-			{
-				lock (this)
-				{
-					if (!path.StartsWith("/"))
-					{
-						throw new System.ArgumentException("Mount point doesn't start with a /");
-					}
-					if (path.Equals("/"))
-					{
-						return root;
-					}
-					path = path.Substring(1);
-					for (int i = 0;i < mps.Length;i++)
-					{
-						if (mps[i].path.Equals(path))
-						{
-							return mps[i].fs;
-						}
-					}
-					return null;
-				}
-			}
-
-			public void addMount(string path, FS fs)
-			{
-				lock (this)
-				{
-					if (getMount(path) != null)
-					{
-						throw new System.ArgumentException("mount point already exists");
-					}
-					if (!path.StartsWith("/"))
-					{
-						throw new System.ArgumentException("Mount point doesn't start with a /");
-					}
-        
-					if (fs.owner != null)
-					{
-						fs.owner.removeMount(fs);
-					}
-					fs.owner = this;
-        
-					if (path.Equals("/"))
-					{
-						root = fs;
-						fs.devno = 1;
-						return;
-					}
-					path = path.Substring(1);
-					int oldLength = mps.Length;
-					MP[] newMPS = new MP[oldLength + 1];
-					if (oldLength != 0)
-					{
-						Array.Copy(mps,0,newMPS,0,oldLength);
-					}
-					newMPS[oldLength] = new MP(path,fs);
-					Sort.sort(newMPS);
-					mps = newMPS;
-					int highdevno = 0;
-					for (int i = 0;i < mps.Length;i++)
-					{
-						highdevno = max(highdevno,mps[i].fs.devno);
-					}
-					fs.devno = highdevno + 2;
-				}
-			}
-
-			public void removeMount(FS fs)
-			{
-				lock (this)
-				{
-					for (int i = 0;i < mps.Length;i++)
-					{
-						if (mps[i].fs == fs)
-						{
-							removeMount(i);
-							return;
-						}
-					}
-					throw new System.ArgumentException("mount point doesn't exist");
-				}
-			}
-
-			public void removeMount(string path)
-			{
-				lock (this)
-				{
-					if (!path.StartsWith("/"))
-					{
-						throw new System.ArgumentException("Mount point doesn't start with a /");
-					}
-					if (path.Equals("/"))
-					{
-						removeMount(-1);
-					}
-					else
-					{
-						path = path.Substring(1);
-						int p;
-						for (p = 0;p < mps.Length;p++)
-						{
-							if (mps[p].path.Equals(path))
-							{
-								break;
-							}
-						}
-						if (p == mps.Length)
-						{
-							throw new System.ArgumentException("mount point doesn't exist");
-						}
-						removeMount(p);
-					}
-				}
-			}
-
-			internal void removeMount(int index)
-			{
-				if (index == -1)
-				{
-					root.owner = null;
-					root = null;
-					return;
-				}
-				MP[] newMPS = new MP[mps.Length - 1];
-				Array.Copy(mps,0,newMPS,0,index);
-				Array.Copy(mps,0,newMPS,index,mps.Length - index - 1);
-				mps = newMPS;
-			}
-
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: private Object fsop(int op, UnixRuntime r, String normalizedPath, int arg1, int arg2) throws ErrnoException
-			internal object fsop(int op, UnixRuntime r, string normalizedPath, int arg1, int arg2)
-			{
-				int pl = normalizedPath.Length;
-				if (pl != 0)
-				{
-					MP[] list;
-					lock (this)
-					{
-						list = mps;
-					}
-					for (int i = 0;i < list.Length;i++)
-					{
-						MP mp = list[i];
-						int mpl = mp.path.Length;
-						if (normalizedPath.StartsWith(mp.path) && (pl == mpl || normalizedPath[mpl] == '/'))
-						{
-							return mp.fs.dispatch(op,r,pl == mpl ? "" : normalizedPath.Substring(mpl + 1),arg1,arg2);
-						}
-					}
-				}
-				return root.dispatch(op,r,normalizedPath,arg1,arg2);
-			}
-
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public final FD open(UnixRuntime r, String path, int flags, int mode) throws ErrnoException
-			public FD open(UnixRuntime r, string path, int flags, int mode)
-			{
-				return (FD) fsop(FS.OPEN,r,path,flags,mode);
-			}
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public final FStat stat(UnixRuntime r, String path) throws ErrnoException
-			public FStat stat(UnixRuntime r, string path)
-			{
-				return (FStat) fsop(FS.STAT,r,path,0,0);
-			}
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public final FStat lstat(UnixRuntime r, String path) throws ErrnoException
-			public FStat lstat(UnixRuntime r, string path)
-			{
-				return (FStat) fsop(FS.LSTAT,r,path,0,0);
-			}
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public final void mkdir(UnixRuntime r, String path, int mode) throws ErrnoException
-			public void mkdir(UnixRuntime r, string path, int mode)
-			{
-				fsop(FS.MKDIR,r,path,mode,0);
-			}
-//JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
-//ORIGINAL LINE: public final void unlink(UnixRuntime r, String path) throws ErrnoException
-			public void unlink(UnixRuntime r, string path)
-			{
-				fsop(FS.UNLINK,r,path,0,0);
-			}
-
-			private class CacheEnt
-			{
-				public readonly long time;
-				public readonly long size;
-				public readonly object o;
-				public CacheEnt(long time, long size, object o)
-				{
-					this.time = time;
-					this.size = size;
-					this.o = o;
-				}
-			}
-		}
 
 		public abstract class FS
 		{
@@ -2898,13 +2602,14 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: FStat hostFStat(final File f, Object data)
 		internal virtual FStat hostFStat(File f, object data)
 		{
+      /*
 			bool e = false;
 			try
 			{
 				FileInputStream fis = new FileInputStream(f);
 				switch (fis.read())
 				{
-					case '\177':
+					case 0x7f: //'\177':
 						e = fis.read() == 'E' && fis.read() == 'L' && fis.read() == 'F';
 						break;
 					case '#':
@@ -2924,25 +2629,26 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: final int devno = fs.devno;
 			int devno = fs.devno;
 			return new HostFStatAnonymousInnerClassHelper(this, f, e, inode, devno);
+   */ throw new NotImplementedException();   
 		}
 
 		private class HostFStatAnonymousInnerClassHelper : HostFStat
 		{
 			private readonly UnixRuntime outerInstance;
 
-			private int inode;
+			private int _inode;
 			private int devno;
 
 			public HostFStatAnonymousInnerClassHelper(UnixRuntime outerInstance, File f, bool e, int inode, int devno) : base(f, e)
 			{
 				this.outerInstance = outerInstance;
-				this.inode = inode;
+				this._inode = inode;
 				this.devno = devno;
 			}
 
 			public virtual int inode()
 			{
-				return inode;
+				return _inode;
 			}
 			public virtual int dev()
 			{
@@ -2988,7 +2694,8 @@ namespace org.ibex.nestedvm
 					}
 					path = new string(buf);
 				}
-				return new File(root,path);
+        throw new NotImplementedException();
+				//return new File(root,path);
 			}
 
 			public HostFS(string root) : this(new File(root))
@@ -3013,6 +2720,7 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: public void unlink(UnixRuntime r, String path) throws ErrnoException
 			public override void unlink(UnixRuntime r, string path)
 			{
+        /*
 				File f = hostFile(path);
 				if (r.sm != null && !r.sm.allowUnlink(f))
 				{
@@ -3044,12 +2752,14 @@ namespace org.ibex.nestedvm
 						throw new ErrnoException(EPERM);
 					}
 				}
+    */ throw new NotImplementedException();    
 			}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public FStat stat(UnixRuntime r, String path) throws ErrnoException
 			public override FStat stat(UnixRuntime r, string path)
 			{
+        /*
 				File f = hostFile(path);
 				if (r.sm != null && !r.sm.allowStat(f))
 				{
@@ -3060,12 +2770,14 @@ namespace org.ibex.nestedvm
 					return null;
 				}
 				return r.hostFStat(f,this);
+    */ throw new NotImplementedException();    
 			}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public void mkdir(UnixRuntime r, String path, int mode) throws ErrnoException
 			public override void mkdir(UnixRuntime r, string path, int mode)
 			{
+        /*
 				File f = hostFile(path);
 				if (r.sm != null && !r.sm.allowWrite(f))
 				{
@@ -3088,22 +2800,36 @@ namespace org.ibex.nestedvm
 				{
 					throw new ErrnoException(EIO);
 				}
+        */ throw new NotImplementedException();
 			}
 
 			internal static File getParentFile(File f)
 			{
+        /*
 				string p = f.Parent;
 				return p == null ? null : new File(p);
+    */
+        throw new NotImplementedException();
 			}
 
 			public class HostDirFD : DirFD
 			{
+        #region implemented abstract members of DirFD
+
+        protected internal override int parinodeode()
+        {
+          throw new NotImplementedException();
+        }
+
+        #endregion
+
 				private readonly UnixRuntime.HostFS outerInstance;
 
 				internal readonly File f;
 				internal readonly File[] children;
 				public HostDirFD(UnixRuntime.HostFS outerInstance, File f)
 				{
+          /*
 					this.outerInstance = outerInstance;
 					this.f = f;
 					string[] l = f.list();
@@ -3112,30 +2838,36 @@ namespace org.ibex.nestedvm
 					{
 						children[i] = new File(f,l[i]);
 					}
+     */ throw new NotImplementedException();     
 				}
-				public override int size()
+        protected internal override int size()
 				{
 					return children.Length;
 				}
-				public override string name(int n)
+        protected internal override string name(int n)
 				{
-					return children[n].Name;
+          throw new NotImplementedException();
+//					return children[n].Name;
 				}
-				public override int inode(int n)
+				protected internal override int inode(int n)
 				{
-					return outerInstance.inodes.get(children[n].AbsolutePath);
+          throw new NotImplementedException();
+					//return outerInstance.inodes.get(children[n].AbsolutePath);
 				}
-				public override int parentInode()
+				public virtual int parentInode()
 				{
 					File parent = getParentFile(f);
+          throw new NotImplementedException();
 					// HACK: myInode() isn't really correct  if we're not the root
-					return parent == null ? myInode() : outerInstance.inodes.get(parent.AbsolutePath);
+					//return parent == null ? myInode() : outerInstance.inodes.get(parent.AbsolutePath);
 				}
-				public override int myInode()
+				protected internal override int myInode()
 				{
-					return outerInstance.inodes.get(f.AbsolutePath);
+          throw new NotImplementedException();
+
+					//return outerInstance.inodes.get(f.AbsolutePath);
 				}
-				public override int myDev()
+				protected internal override int myDev()
 				{
 					return outerInstance.devno;
 				}
@@ -3157,8 +2889,9 @@ namespace org.ibex.nestedvm
 				{
 					return null;
 				}
+        throw new NotImplementedException();
 
-				path = drive + ":" + path.Substring(1).Replace('/', '\\');
+			//	path = inode + ":" + path.Substring(1).Replace('/', '\\');
 				return new File(path);
 			}
 
@@ -3167,8 +2900,8 @@ namespace org.ibex.nestedvm
 			}
 		}
 
-		private static void putInt(sbyte[] buf, int off, int n)
-		{
+		private static void putInt(sbyte[] buf, int off, int n)//inode)
+    {
 			buf[off + 0] = unchecked((sbyte)(((int)((uint)n >> 24)) & 0xff));
 			buf[off + 1] = unchecked((sbyte)(((int)((uint)n >> 16)) & 0xff));
 			buf[off + 2] = unchecked((sbyte)(((int)((uint)n >> 8)) & 0xff));
@@ -3183,15 +2916,16 @@ namespace org.ibex.nestedvm
 			protected internal abstract string name(int n);
 			protected internal abstract int inode(int n);
 			protected internal abstract int myDev();
-			protected internal abstract int parentInode();
+			protected internal abstract int parinodeode();
 			protected internal abstract int myInode();
-			public virtual int flags()
+			public override int flags()
 			{
 				return O_RDONLY;
 			}
 
 			public virtual int getdents(sbyte[] buf, int off, int len)
 			{
+        /*
 				int ooff = off;
 				int ino;
 				int reclen;
@@ -3241,9 +2975,11 @@ namespace org.ibex.nestedvm
 				}
 				OUTERBreak:
 				return off - ooff;
+    */          throw new NotImplementedException();
+
 			}
 
-			protected internal virtual FStat _fstat()
+			protected internal override FStat _fstat()
 			{
 				return new FStatAnonymousInnerClassHelper(this);
 			}
@@ -3257,15 +2993,15 @@ namespace org.ibex.nestedvm
 					this.outerInstance = outerInstance;
 				}
 
-				public virtual int type()
+				public override int type()
 				{
 					return S_IFDIR;
 				}
-				public virtual int inode()
+				public override int inode()
 				{
 					return outerInstance.myInode();
 				}
-				public virtual int dev()
+				public override int dev()
 				{
 					return outerInstance.myDev();
 				}
@@ -3282,6 +3018,9 @@ namespace org.ibex.nestedvm
 
 			private abstract class DevFStat : FStat
 			{
+        public DevFStat()
+        {
+        }
 				private readonly UnixRuntime.DevFS outerInstance;
 
 				public DevFStat(UnixRuntime.DevFS outerInstance)
@@ -3289,35 +3028,35 @@ namespace org.ibex.nestedvm
 					this.outerInstance = outerInstance;
 				}
 
-				public virtual int dev()
+				public override int dev()
 				{
 					return outerInstance.devno;
 				}
-				public virtual int mode()
+				public override int mode()
 				{
 					return 0x366;
 				}
-				public virtual int type()
+				public override int type()
 				{
 					return S_IFCHR;
 				}
-				public virtual int nlink()
+				public override int nlink()
 				{
 					return 1;
 				}
-				public abstract int inode();
+        public override int inode() { throw new NotImplementedException();}
 			}
 
 			private abstract class DevDirFD : DirFD
 			{
 				private readonly UnixRuntime.DevFS outerInstance;
-
+        public DevDirFD() {}
 				public DevDirFD(UnixRuntime.DevFS outerInstance)
 				{
 					this.outerInstance = outerInstance;
 				}
 
-				public override int myDev()
+				protected internal override int myDev()
 				{
 					return outerInstance.devno;
 				}
@@ -3331,7 +3070,7 @@ namespace org.ibex.nestedvm
 				{
 				}
 
-				public virtual int read(sbyte[] a, int off, int length)
+				public override int read(sbyte[] a, int off, int length)
 				{
 					/*Arrays.fill(a,off,off+length,(byte)0);*/
 					for (int i = off;i < off + length;i++)
@@ -3340,15 +3079,15 @@ namespace org.ibex.nestedvm
 					}
 					return length;
 				}
-				public virtual int write(sbyte[] a, int off, int length)
+				public override int write(sbyte[] a, int off, int length)
 				{
 					return length;
 				}
-				public virtual int seek(int n, int whence)
+				public override int seek(int n, int whence)
 				{
 					return 0;
 				}
-				public virtual FStat _fstat()
+				protected internal override FStat _fstat()
 				{
 					return new DevFStatAnonymousInnerClassHelper(this);
 				}
@@ -3367,7 +3106,7 @@ namespace org.ibex.nestedvm
 						return ZERO_INODE;
 					}
 				}
-				public virtual int flags()
+				public override int flags()
 				{
 					return O_RDWR;
 				}
@@ -3380,19 +3119,19 @@ namespace org.ibex.nestedvm
 				{
 				}
 
-				public virtual int read(sbyte[] a, int off, int length)
+        public override int read(sbyte[] a, int off, int length)
 				{
 					return 0;
 				}
-				public virtual int write(sbyte[] a, int off, int length)
+        public override int write(sbyte[] a, int off, int length)
 				{
 					return length;
 				}
-				public virtual int seek(int n, int whence)
+        public override int seek(int n, int whence)
 				{
 					return 0;
 				}
-				public virtual FStat _fstat()
+				protected internal override FStat _fstat()
 				{
 					return new DevFStatAnonymousInnerClassHelper2(this);
 				}
@@ -3411,7 +3150,7 @@ namespace org.ibex.nestedvm
 						return NULL_INODE;
 					}
 				}
-				public virtual int flags()
+        public override int flags()
 				{
 					return O_RDWR;
 				}
@@ -3431,12 +3170,12 @@ namespace org.ibex.nestedvm
 				}
 				if (path.StartsWith("fd/"))
 				{
-					int n;
+					int n=0;
 					try
 					{
 						n = Convert.ToInt32(path.Substring(3));
 					}
-					catch (NumberFormatException e)
+					catch (Exception e)
 					{
 						return null;
 					}
@@ -3482,6 +3221,15 @@ namespace org.ibex.nestedvm
 
 			private class DevDirFDAnonymousInnerClassHelper : DevDirFD
 			{
+        #region implemented abstract members of DirFD
+
+        protected internal override int parinodeode()
+        {
+          throw new NotImplementedException();
+        }
+
+        #endregion
+
 				private readonly DevFS outerInstance;
 
 				private int[] files;
@@ -3492,23 +3240,23 @@ namespace org.ibex.nestedvm
 					this.files = files;
 				}
 
-				public override int myInode()
+				protected internal override int myInode()
 				{
 					return FD_INODE;
 				}
-				public override int parentInode()
+        protected internal virtual int parentInode()
 				{
 					return ROOT_INODE;
 				}
-				public override int inode(int n)
+        protected internal override int inode(int n)
 				{
 					return FD_INODES + n;
 				}
-				public override string name(int n)
+        protected internal override string name(int n)
 				{
 					return Convert.ToString(files[n]);
 				}
-				public override int size()
+        protected internal override int size()
 				{
 					return files.Length;
 				}
@@ -3516,6 +3264,15 @@ namespace org.ibex.nestedvm
 
 			private class DevDirFDAnonymousInnerClassHelper2 : DevDirFD
 			{
+        #region implemented abstract members of DirFD
+
+        protected internal override int parinodeode()
+        {
+          throw new NotImplementedException();
+        }
+
+        #endregion
+
 				private readonly DevFS outerInstance;
 
 				public DevDirFDAnonymousInnerClassHelper2(DevFS outerInstance) : base(outerInstance)
@@ -3523,16 +3280,16 @@ namespace org.ibex.nestedvm
 					this.outerInstance = outerInstance;
 				}
 
-				public override int myInode()
+        protected internal override int myInode()
 				{
 					return ROOT_INODE;
 				}
 				// HACK: We don't have any clean way to get the parent inode
-				public override int parentInode()
+        protected internal virtual int parentInode()
 				{
 					return ROOT_INODE;
 				}
-				public override int inode(int n)
+        protected internal override int inode(int n)
 				{
 					switch (n)
 					{
@@ -3547,7 +3304,7 @@ namespace org.ibex.nestedvm
 					}
 				}
 
-				public override string name(int n)
+        protected internal override string name(int n)
 				{
 					switch (n)
 					{
@@ -3561,7 +3318,7 @@ namespace org.ibex.nestedvm
 							return null;
 					}
 				}
-				public override int size()
+        protected internal override int size()
 				{
 					return 3;
 				}
@@ -3586,7 +3343,7 @@ namespace org.ibex.nestedvm
 					{
 						n = Convert.ToInt32(path.Substring(3));
 					}
-					catch (NumberFormatException e)
+					catch (Exception e)
 					{
 						return null;
 					}
@@ -3620,19 +3377,19 @@ namespace org.ibex.nestedvm
 					this.outerInstance = outerInstance;
 				}
 
-				public virtual int inode()
+				public override int inode()
 				{
 					return FD_INODE;
 				}
-				public virtual int dev()
+				public override int dev()
 				{
 					return outerInstance.devno;
 				}
-				public virtual int type()
+				public override int type()
 				{
 					return S_IFDIR;
 				}
-				public virtual int mode()
+				public override int mode()
 				{
 					return 0x244;
 				}
@@ -3647,19 +3404,19 @@ namespace org.ibex.nestedvm
 					this.outerInstance = outerInstance;
 				}
 
-				public virtual int inode()
+				public override int inode()
 				{
 					return ROOT_INODE;
 				}
-				public virtual int dev()
+				public override int dev()
 				{
 					return outerInstance.devno;
 				}
-				public virtual int type()
+				public override int type()
 				{
 					return S_IFDIR;
 				}
-				public virtual int mode()
+				public override int mode()
 				{
 					return 0x244;
 				}
@@ -3705,7 +3462,7 @@ namespace org.ibex.nestedvm
 
 //JAVA TO C# CONVERTER WARNING: 'final' parameters are not allowed in .NET:
 //ORIGINAL LINE: FStat connFStat(final URLConnection conn)
-			internal virtual FStat connFStat(URLConnection conn)
+			internal virtual FStat connFStat(HttpWebRequest conn)
 			{
 				return new FStatAnonymousInnerClassHelper(this, conn);
 			}
@@ -3714,39 +3471,41 @@ namespace org.ibex.nestedvm
 			{
 				private readonly ResourceFS outerInstance;
 
-				private URLConnection conn;
+        private HttpWebRequest conn;
 
-				public FStatAnonymousInnerClassHelper(ResourceFS outerInstance, URLConnection conn)
+        public FStatAnonymousInnerClassHelper(ResourceFS outerInstance, HttpWebRequest conn)
 				{
 					this.outerInstance = outerInstance;
 					this.conn = conn;
 				}
 
-				public virtual int type()
+				public override int type()
 				{
 					return S_IFREG;
 				}
-				public virtual int nlink()
+        public override int nlink()
 				{
 					return 1;
 				}
-				public virtual int mode()
+        public override int mode()
 				{
 					return 0x244;
 				}
-				public virtual int size()
+        public override int size()
 				{
-					return conn.ContentLength;
+					return (int)conn.ContentLength;
 				}
-				public virtual int mtime()
+        public override int mtime()
 				{
-					return (int)(conn.Date / 1000);
+          throw new NotImplementedException();
+          //					return (int)(conn.Date / 1000);
 				}
-				public virtual int inode()
+        public override int inode()
 				{
-					return outerInstance.inodes.get(conn.URL.ToString());
+          throw new NotImplementedException();
+          //return outerInstance.inodes.get(conn.URL.ToString());
 				}
-				public virtual int dev()
+        public override int dev()
 				{
 					return outerInstance.devno;
 				}
@@ -3756,6 +3515,7 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: public FStat stat(UnixRuntime r, String path) throws ErrnoException
 			public override FStat stat(UnixRuntime r, string path)
 			{
+        /*
 				URL url = r.GetType().getResource("/" + path);
 				if (url == null)
 				{
@@ -3769,12 +3529,16 @@ namespace org.ibex.nestedvm
 				{
 					throw new ErrnoException(EIO);
 				}
+    */
+        throw new NotImplementedException();
+
 			}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public FD open(UnixRuntime r, String path, int flags, int mode) throws ErrnoException
 			public override FD open(UnixRuntime r, string path, int flags, int mode)
 			{
+        /*
 				if ((flags & ~3) != 0)
 				{
 					if (STDERR_DIAG)
@@ -3812,26 +3576,389 @@ namespace org.ibex.nestedvm
 				{
 					throw new ErrnoException(EIO);
 				}
+    */          throw new NotImplementedException();
+
 			}
 
 			private class SeekableFDAnonymousInnerClassHelper : SeekableFD
 			{
 				private readonly ResourceFS outerInstance;
 
-				private URLConnection conn;
+				private HttpWebRequest conn;
 
-				public SeekableFDAnonymousInnerClassHelper(ResourceFS outerInstance, Seekable.InputStream si, int flags, URLConnection conn) : base(si, flags)
+				public SeekableFDAnonymousInnerClassHelper(ResourceFS outerInstance, InputStream si, int flags, HttpWebRequest conn) : base(si, flags)
 				{
 					this.outerInstance = outerInstance;
 					this.conn = conn;
 				}
 
-				protected internal virtual FStat _fstat()
+				protected internal override FStat _fstat()
 				{
 					return outerInstance.connFStat(conn);
 				}
 			}
 		}
 	}
+  
+  public sealed class GlobalState
+  {
+    internal Hashtable execCache = new Hashtable();
+    
+    internal readonly UnixRuntime[] tasks;
+    internal int nextPID = 1;
+    
+    /// <summary>
+    /// Table of all current file locks held by this process. </summary>
+    internal Lock[] locks = new Lock[16];
+    
+    internal MP[] mps = new MP[0];
+    internal org.ibex.nestedvm.UnixRuntime.FS root;
+    
+    public GlobalState() : this(255)
+    {
+    }
+    public GlobalState(int maxProcs) : this(maxProcs,true)
+    {
+    }
+    public GlobalState(int maxProcs, bool defaultMounts)
+    {
+      /*
+      tasks = new UnixRuntime[maxProcs + 1];
+      if (defaultMounts)
+      {
+        File root = null;
+        if (Platform.getProperty("nestedvm.root") != null)
+        {
+          root = new File(Platform.getProperty("nestedvm.root"));
+          if (!root.Directory)
+          {
+            throw new System.ArgumentException("nestedvm.root is not a directory");
+          }
+        }
+        else
+        {
+          string cwd = Platform.getProperty("user.dir");
+          root = Platform.getRoot(new File(cwd != null ? cwd : "."));
+        }
+        
+        addMount("/",new HostFS(root));
+        
+        if (Platform.getProperty("nestedvm.root") == null)
+        {
+          File[] roots = Platform.listRoots();
+          for (int i = 0;i < roots.Length;i++)
+          {
+            string name = roots[i].Path;
+            if (name.EndsWith(File.separator))
+            {
+              name = name.Substring(0,name.Length - 1);
+            }
+            if (name.Length == 0 || name.IndexOf('/') != -1)
+            {
+              continue;
+            }
+            addMount("/" + name.ToLower(),new HostFS(roots[i]));
+          }
+        }
+        
+        addMount("/dev",new DevFS());
+        addMount("/resource",new ResourceFS());
+        addMount("/cygdrive",new CygdriveFS());
+        
+      }
+      */          throw new NotImplementedException();
+
+    }
+    
+    public string mapHostPath(string s)
+    {
+      return mapHostPath(new File(s));
+    }
+    public string mapHostPath(File f)
+    {
+      /*
+      MP[] list;
+      FS root;
+      lock (this)
+      {
+        mps = this.mps;
+        root = this.root;
+      }
+      if (!f.Absolute)
+      {
+        f = new File(f.AbsolutePath);
+      }
+      for (int i = mps.Length;i >= 0;i--)
+      {
+        FS fs = i == mps.Length ? root : mps[i].fs;
+        string path = i == mps.Length ? "" : mps[i].path;
+        if (!(fs is HostFS))
+        {
+          continue;
+        }
+        File fsroot = ((HostFS)fs).Root;
+        if (!fsroot.Absolute)
+        {
+          fsroot = new File(fsroot.AbsolutePath);
+        }
+        if (f.Path.StartsWith(fsroot.Path))
+        {
+          char sep = System.IO.Path.DirectorySeparatorChar;
+          string child = f.Path.Substring(fsroot.Path.length());
+          if (sep != '/')
+          {
+            char[] child_ = child.ToCharArray();
+            for (int j = 0;j < child_.Length;j++)
+            {
+              if (child_[j] == '/')
+              {
+                child_[j] = sep;
+              }
+              else if (child_[j] == sep)
+              {
+                child_[j] = '/';
+              }
+            }
+            child = new string(child_);
+          }
+          string mapped = "/" + (path.Length == 0?"":path + "/") + child;
+          return mapped;
+        }
+      }
+      return null;
+      */ throw new NotImplementedException();
+    }
+    
+    internal class MP : Sort.Comparable
+    {
+      public MP(string path, org.ibex.nestedvm.UnixRuntime.FS fs)
+      {
+        this.path = path;
+        this.fs = fs;
+      }
+      public string path;
+      public org.ibex.nestedvm.UnixRuntime.FS fs;
+      public virtual int compareTo(object o)
+      {
+        if (!(o is MP))
+        {
+          return 1;
+        }
+        return -path.CompareTo(((MP)o).path);
+      }
+    }
+    
+    public org.ibex.nestedvm.UnixRuntime.FS getMount(string path)
+    {
+      lock (this)
+      {
+        if (!path.StartsWith("/"))
+        {
+          throw new System.ArgumentException("Mount point doesn't start with a /");
+        }
+        if (path.Equals("/"))
+        {
+          return root;
+        }
+        path = path.Substring(1);
+        for (int i = 0;i < mps.Length;i++)
+        {
+          if (mps[i].path.Equals(path))
+          {
+            return mps[i].fs;
+          }
+        }
+        return null;
+      }
+    }
+    
+    public void addMount(string path, org.ibex.nestedvm.UnixRuntime.FS fs)
+    {
+      /*
+      lock (this)
+      {
+        if (getMount(path) != null)
+        {
+          throw new System.ArgumentException("mount point already exists");
+        }
+        if (!path.StartsWith("/"))
+        {
+          throw new System.ArgumentException("Mount point doesn't start with a /");
+        }
+        
+        if (fs.owner != null)
+        {
+          fs.owner.removeMount(fs);
+        }
+        fs.owner = this;
+        
+        if (path.Equals("/"))
+        {
+          root = fs;
+          fs.devno = 1;
+          return;
+        }
+        path = path.Substring(1);
+        int oldLength = mps.Length;
+        MP[] newMPS = new MP[oldLength + 1];
+        if (oldLength != 0)
+        {
+          Array.Copy(mps,0,newMPS,0,oldLength);
+        }
+        newMPS[oldLength] = new MP(path,fs);
+        Sort.sort(newMPS);
+        mps = newMPS;
+        int highdevno = 0;
+        for (int i = 0;i < mps.Length;i++)
+        {
+          highdevno = max(highdevno,mps[i].fs.devno);
+        }
+        fs.devno = highdevno + 2;
+      }
+      */           throw new NotImplementedException();
+
+    }
+    
+    public void removeMount(org.ibex.nestedvm.UnixRuntime.FS fs)
+    {
+      lock (this)
+      {
+        for (int i = 0;i < mps.Length;i++)
+        {
+          if (mps[i].fs == fs)
+          {
+            removeMount(i);
+            return;
+          }
+        }
+        throw new System.ArgumentException("mount point doesn't exist");
+      }
+    }
+    
+    public void removeMount(string path)
+    {
+      lock (this)
+      {
+        if (!path.StartsWith("/"))
+        {
+          throw new System.ArgumentException("Mount point doesn't start with a /");
+        }
+        if (path.Equals("/"))
+        {
+          removeMount(-1);
+        }
+        else
+        {
+          path = path.Substring(1);
+          int p;
+          for (p = 0;p < mps.Length;p++)
+          {
+            if (mps[p].path.Equals(path))
+            {
+              break;
+            }
+          }
+          if (p == mps.Length)
+          {
+            throw new System.ArgumentException("mount point doesn't exist");
+          }
+          removeMount(p);
+        }
+      }
+    }
+    
+    internal void removeMount(int index)
+    {
+      if (index == -1)
+      {
+        root.owner = null;
+        root = null;
+        return;
+      }
+      MP[] newMPS = new MP[mps.Length - 1];
+      Array.Copy(mps,0,newMPS,0,index);
+      Array.Copy(mps,0,newMPS,index,mps.Length - index - 1);
+      mps = newMPS;
+    }
+    
+    //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+    //ORIGINAL LINE: private Object fsop(int op, UnixRuntime r, String normalizedPath, int arg1, int arg2) throws ErrnoException
+    internal object fsop(int op, UnixRuntime r, string normalizedPath, int arg1, int arg2)
+    {
+      int pl = normalizedPath.Length;
+      if (pl != 0)
+      {
+        MP[] list;
+        lock (this)
+        {
+          list = mps;
+        }
+        for (int i = 0;i < list.Length;i++)
+        {
+          MP mp = list[i];
+          int mpl = mp.path.Length;
+          if (normalizedPath.StartsWith(mp.path) && (pl == mpl || normalizedPath[mpl] == '/'))
+          {
+            return mp.fs.dispatch(op,r,pl == mpl ? "" : normalizedPath.Substring(mpl + 1),arg1,arg2);
+          }
+        }
+      }
+      return root.dispatch(op,r,normalizedPath,arg1,arg2);
+    }
+    
+    //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+    //ORIGINAL LINE: public final FD open(UnixRuntime r, String path, int flags, int mode) throws ErrnoException
+    public org.ibex.nestedvm.Runtime.FD open(UnixRuntime r, string path, int flags, int mode)
+    {
+      throw new NotImplementedException();
+
+      //return (org.ibex.nestedvm.Runtime.FD) fsop(org.ibex.nestedvm.Runtime.FS.OPEN,r,path,flags,mode);
+    }
+    //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+    //ORIGINAL LINE: public final FStat stat(UnixRuntime r, String path) throws ErrnoException
+    public org.ibex.nestedvm.Runtime.FStat stat(UnixRuntime r, string path)
+    {
+      throw new NotImplementedException();
+
+      //return (org.ibex.nestedvm.Runtime.FStat) fsop(org.ibex.nestedvm.Runtime.FS.STAT,r,path,0,0);
+    }
+    //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+    //ORIGINAL LINE: public final FStat lstat(UnixRuntime r, String path) throws ErrnoException
+    public org.ibex.nestedvm.Runtime.FStat lstat(UnixRuntime r, string path)
+    {
+      throw new NotImplementedException();
+
+      //return (org.ibex.nestedvm.Runtime.FStat) fsop(org.ibex.nestedvm.Runtime.FS.LSTAT,r,path,0,0);
+    }
+    //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+    //ORIGINAL LINE: public final void mkdir(UnixRuntime r, String path, int mode) throws ErrnoException
+    public void mkdir(UnixRuntime r, string path, int mode)
+    {
+      throw new NotImplementedException();
+
+      //fsop(org.ibex.nestedvm.Runtime.FS.MKDIR,r,path,mode,0);
+    }
+    //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
+    //ORIGINAL LINE: public final void unlink(UnixRuntime r, String path) throws ErrnoException
+    public void unlink(UnixRuntime r, string path)
+    {
+      throw new NotImplementedException();
+
+      //fsop(org.ibex.nestedvm.Runtime.FS.UNLINK,r,path,0,0);
+    }
+    
+    internal class CacheEnt
+    {
+      public readonly long time;
+      public readonly long size;
+      public readonly object o;
+      public CacheEnt(long time, long size, object o)
+      {
+        this.time = time;
+        this.size = size;
+        this.o = o;
+      }
+    }
+  }
 
 }

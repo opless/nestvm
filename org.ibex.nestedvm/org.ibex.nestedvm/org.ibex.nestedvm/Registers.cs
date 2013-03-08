@@ -5,18 +5,8 @@
 namespace org.ibex.nestedvm
 {
 
-	internal interface Registers
-	{
-		// Register Names
-
-		// Return values (caller saved)
-		// Argument Registers (caller saved)
-		// Temporaries (caller saved)
-		// Saved (callee saved)
-	}
-
-	public static class Registers_Fields
-	{
+  public abstract partial class Runtime //Registers
+  {
 		public const int ZERO = 0;
 		public const int AT = 1;
 		public const int K0 = 26;

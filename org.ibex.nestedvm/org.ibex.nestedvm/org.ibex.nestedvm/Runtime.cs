@@ -9,13 +9,14 @@ using System.Threading;
 // Copyright 2003 Brian Alliet
 // Based on org.xwt.imp.MIPS by Adam Megacz
 // Portions Copyright 2003 Adam Megacz
+using System.IO;
 
 namespace org.ibex.nestedvm
 {
 
 	using org.ibex.nestedvm.util;
 
-	public abstract class Runtime : UsermodeConstants, Registers, ICloneable
+  public abstract partial class Runtime //: //ICloneable //UsermodeConstants, Registers, ICloneable
 	{
 		public const string VERSION = "1.0";
 
@@ -129,8 +130,8 @@ namespace org.ibex.nestedvm
 
 		/// <summary>
 		/// Pointer to a callback for the call_java syscall </summary>
-		private CallJavaCB callJavaCB;
-		public virtual CallJavaCB CallJavaCB
+		private ICallJavaCB callJavaCB;
+		public virtual ICallJavaCB CallJavaCB
 		{
 			set
 			{
@@ -166,11 +167,11 @@ namespace org.ibex.nestedvm
 
 		/// <summary>
 		/// Subclasses should populate a CPUState object representing the cpu state </summary>
-		protected internal abstract void getCPUState(CPUState state);
+		protected internal abstract void getCPUState(CpuState state);
 
 		/// <summary>
 		/// Subclasses should set the CPUState to the state held in <i>state</i> </summary>
-		protected internal abstract CPUState CPUState {set;}
+		protected internal abstract CpuState CPUState {set;}
 
 		/// <summary>
 		/// True to enabled a few hacks to better support the win32 console </summary>
@@ -194,7 +195,9 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: protected Object clone() throws CloneNotSupportedException
 		protected internal virtual object clone()
 		{
-			Runtime r = (Runtime) base.clone();
+      throw new NotImplementedException();
+			//Runtime r = (Runtime) base.clone();
+      Runtime r = null;
 			r._byteBuf = null;
 			r.startTime = 0;
 			r.fds = new FD[OPEN_MAX];
@@ -220,7 +223,8 @@ namespace org.ibex.nestedvm
 				}
 				else
 				{
-					r.readPages[i] = r.writePages[i] = (int[])writePages[i].clone();
+          throw new NotImplementedException();
+					//r.readPages[i] = r.writePages[i] = (int[])writePages[i].clone();
 				}
 			}
 			return r;
@@ -251,7 +255,7 @@ namespace org.ibex.nestedvm
 			}
 			pageShift = _pageShift;
 
-			int heapStart = heapStart();
+			int heapStart = this.heapStart();
 			int totalMemory = totalPages * pageSize;
 			int stackSize = max(totalMemory / 512,ARG_MAX + 65536);
 			int stackPages = 0;
@@ -298,10 +302,11 @@ namespace org.ibex.nestedvm
 				fds = new FD[OPEN_MAX];
 				closeOnExec = new bool[OPEN_MAX];
 
-				InputStream stdin = win32Hacks ? new Win32ConsoleIS(System.in) : System.in;
-				addFD(new TerminalFD(stdin));
-				addFD(new TerminalFD(System.out));
-				addFD(new TerminalFD(System.err));
+        //InputStream stdin = win32Hacks ? new Win32ConsoleIS(System.in) : System.in;
+        InputStream stdin = new InputStream(Console.In);
+        addFD(new TerminalFD(stdin));
+				addFD(new TerminalFD(new OutputStream(Console.Out)));
+				addFD(new TerminalFD(new OutputStream(Console.Error)));
 			}
 		}
 
@@ -374,7 +379,11 @@ namespace org.ibex.nestedvm
 		/// </summary>
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public final void copyin(int addr, byte[] buf, int count) throws ReadFaultException
-		public void copyin(int addr, sbyte[] buf, int count)
+    public void copyin(int addr, byte[] buf, int count)
+    {
+      throw new NotImplementedException(); 
+    }
+    public void copyin(int addr, sbyte[] buf, int count)
 		{
 			int pageWords = (int)((uint)(1 << pageShift)>>2);
 			int pageMask = pageWords - 1;
@@ -387,6 +396,8 @@ namespace org.ibex.nestedvm
 			if ((addr & 3) != 0)
 			{
 				int word = memRead(addr & ~3);
+        throw new NotImplementedException();
+          /*
 				switch (addr & 3)
 				{
 					case 1:
@@ -408,6 +419,7 @@ namespace org.ibex.nestedvm
 							break;
 						}
 				}
+        */
 				addr = (addr & ~3) + 4;
 			}
 			if ((count & ~3) != 0)
@@ -474,6 +486,8 @@ namespace org.ibex.nestedvm
 			if ((addr & 3) != 0)
 			{
 				int word = memRead(addr & ~3);
+        throw new NotImplementedException();
+        /*
 				switch (addr & 3)
 				{
 					case 1:
@@ -495,6 +509,7 @@ namespace org.ibex.nestedvm
 							break;
 						}
 				}
+    */    
 				memWrite(addr & ~3,word);
 				addr += x;
 			}
@@ -623,6 +638,8 @@ namespace org.ibex.nestedvm
 			if ((addr & 3) != 0)
 			{
 				int word = memRead(addr & ~3);
+        throw new NotImplementedException();
+        /*
 				switch (addr & 3)
 				{
 					case 1:
@@ -644,6 +661,7 @@ namespace org.ibex.nestedvm
 							break;
 						}
 				}
+    */    
 				memWrite(addr & ~3,word);
 				addr = (addr & ~3) + 4;
 			}
@@ -677,13 +695,13 @@ namespace org.ibex.nestedvm
 				switch (count)
 				{
 					case 1:
-						word = (word & 0x00ffffff) | (fourBytes & 0xff000000);
+						word = (int)((word & 0x00ffffff) | (fourBytes & 0xff000000));
 						break;
 					case 2:
-						word = (word & 0x0000ffff) | (fourBytes & 0xffff0000);
+            word = (int)((word & 0x0000ffff) | (fourBytes & 0xffff0000));
 						break;
 					case 3:
-						word = (word & 0x000000ff) | (fourBytes & 0xffffff00);
+            word = (int)((word & 0x000000ff) | (fourBytes & 0xffffff00));
 						break;
 				}
 				memWrite(addr,word);
@@ -787,7 +805,7 @@ namespace org.ibex.nestedvm
 		{
 			if (state != EXITED)
 			{
-				throw new IllegalStateException("exitStatus() called in an inappropriate state");
+				throw new ArgumentException("exitStatus() called in an inappropriate state");
 			}
 			return exitStatus_Renamed;
 		}
@@ -917,17 +935,17 @@ namespace org.ibex.nestedvm
 		{
 			if (state != PAUSED)
 			{
-				throw new IllegalStateException("execute() called in inappropriate state");
+				throw new ArgumentException("execute() called in inappropriate state");
 			}
 			if (startTime == 0)
 			{
-				startTime = System.currentTimeMillis();
+        startTime =  DateTime.UtcNow.Ticks;//System.currentTimeMillis();
 			}
 			state = RUNNING;
 			__execute();
 			if (state != PAUSED && state != EXITED && state != EXECED)
 			{
-				throw new IllegalStateException("execute() ended up in an inappropriate state (" + state + ")");
+        throw new ArgumentException("execute() ended up in an inappropriate state (" + state + ")");
 			}
 			return state != PAUSED;
 		}
@@ -994,7 +1012,7 @@ namespace org.ibex.nestedvm
 			int top, sp, argsAddr, envAddr;
 			if (state != STOPPED)
 			{
-				throw new IllegalStateException("start() called in inappropriate state");
+        throw new ArgumentException("start() called in inappropriate state");
 			}
 			if (args == null)
 			{
@@ -1030,7 +1048,7 @@ namespace org.ibex.nestedvm
 				heapEnd = (heapEnd + pageSize - 1) & ~(pageSize-1);
 			}
 
-			CPUState cpuState = new CPUState();
+			CpuState cpuState = new CpuState();
 			cpuState.r[A0] = argsAddr;
 			cpuState.r[A1] = envAddr;
 			cpuState.r[SP] = sp;
@@ -1048,7 +1066,7 @@ namespace org.ibex.nestedvm
 		{
 			if (state != RUNNING && state != PAUSED)
 			{
-				throw new IllegalStateException("stop() called in inappropriate state");
+        throw new ArgumentException("stop() called in inappropriate state");
 			}
 			exit(0, false);
 		}
@@ -1063,15 +1081,17 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: public final int call(String sym, Object[] args) throws CallException, FaultException
 		public int call(string sym, object[] args)
 		{
+      throw new NotImplementedException();
+      /*
 			if (state != PAUSED && state != CALLJAVA)
 			{
-				throw new IllegalStateException("call() called in inappropriate state");
+        throw new ArgumentException("call() called in inappropriate state");
 			}
 			if (args.Length > 7)
 			{
 				throw new System.ArgumentException("args.length > 7");
 			}
-			CPUState state = new CPUState();
+			CpuState state = new CpuState();
 			getCPUState(state);
 
 			int sp = state.r[SP];
@@ -1111,6 +1131,7 @@ namespace org.ibex.nestedvm
 			state.r[SP] = oldSP;
 			CPUState = state;
 			return ret;
+      */
 		}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
@@ -1166,12 +1187,12 @@ namespace org.ibex.nestedvm
 			}
 			if (state != PAUSED && state != CALLJAVA)
 			{
-				throw new IllegalStateException("call() called in inappropriate state");
+        throw new ArgumentException("call() called in inappropriate state");
 			}
 			int oldState = state;
-			CPUState saved = new CPUState();
+			CpuState saved = new CpuState();
 			getCPUState(saved);
-			CPUState cpustate = saved.dup();
+			CpuState cpustate = saved.dup();
 
 			cpustate.r[SP] = cpustate.r[SP] & ~15;
 			cpustate.r[RA] = unchecked((int)0xdeadbeef);
@@ -1227,7 +1248,7 @@ namespace org.ibex.nestedvm
 		{
 			if (state == EXITED || state == EXECED)
 			{
-				throw new IllegalStateException("addFD called in inappropriate state");
+        throw new ArgumentException("addFD called in inappropriate state");
 			}
 			int i;
 			for (i = 0;i < OPEN_MAX;i++)
@@ -1261,7 +1282,7 @@ namespace org.ibex.nestedvm
 		{
 			if (state == EXITED || state == EXECED)
 			{
-				throw new IllegalStateException("closeFD called in inappropriate state");
+        throw new ArgumentException("closeFD called in inappropriate state");
 			}
 			if (fdn < 0 || fdn >= OPEN_MAX)
 			{
@@ -1352,6 +1373,8 @@ namespace org.ibex.nestedvm
 					throw new ErrnoException(EIO);
 				}
 			}
+      else throw new NotImplementedException();
+      /*
 			else if (!f.exists())
 			{
 				if ((flags & O_CREAT) == 0)
@@ -1363,13 +1386,14 @@ namespace org.ibex.nestedvm
 			{
 				return hostFSDirFD(f,data);
 			}
+      */
 
 //JAVA TO C# CONVERTER WARNING: The original Java variable was marked 'final':
 //ORIGINAL LINE: final Seekable.File sf;
-			Seekable.File sf;
+			File sf;
 			try
 			{
-				sf = new Seekable.File(f,write,(flags & O_TRUNC) != 0);
+				sf = new File(f,write,(flags & O_TRUNC) != 0);
 			}
 			catch (FileNotFoundException e)
 			{
@@ -1393,9 +1417,9 @@ namespace org.ibex.nestedvm
 
 			private File f;
 			private new object data;
-			private Seekable.File sf;
+			private File sf;
 
-			public SeekableFDAnonymousInnerClassHelper(Runtime outerInstance, Seekable.File sf, int flags, File f, object data) : base(sf, flags)
+			public SeekableFDAnonymousInnerClassHelper(Runtime outerInstance, File sf, int flags, File f, object data) : base(sf, flags)
 			{
 				this.outerInstance = outerInstance;
 				this.f = f;
@@ -1409,7 +1433,7 @@ namespace org.ibex.nestedvm
 			}
 		}
 
-		internal virtual FStat hostFStat(File f, Seekable.File sf, object data)
+		internal virtual FStat hostFStat(File f, File sf, object data)
 		{
 			return new HostFStat(f,sf);
 		}
@@ -1618,7 +1642,8 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: private int sys_gettimeofday(int timevalAddr, int timezoneAddr) throws FaultException
 		private int sys_gettimeofday(int timevalAddr, int timezoneAddr)
 		{
-			long now = System.currentTimeMillis();
+      throw new NotImplementedException();
+      long now = 0; //System.currentTimeMillis();
 			int tv_sec = (int)(now / 1000);
 			int tv_usec = (int)((now % 1000) * 1000);
 			memWrite(timevalAddr + 0,tv_sec);
@@ -1634,10 +1659,10 @@ namespace org.ibex.nestedvm
 			}
 			try
 			{
-				Thread.Sleep((long)sec * 1000);
+				Thread.Sleep(sec * 1000);
 				return 0;
 			}
-			catch (InterruptedException e)
+			catch (ThreadInterruptedException e)
 			{
 				return -1;
 			}
@@ -1655,7 +1680,8 @@ namespace org.ibex.nestedvm
 
 		private int sys_times(int tms)
 		{
-			long now = System.currentTimeMillis();
+      throw new NotImplementedException();
+      long now = 0;//System.currentTimeMillis();
 			int userTime = (int)((now - startTime) / 16);
 			int sysTime = (int)((now - startTime) / 16);
 
@@ -1757,7 +1783,7 @@ namespace org.ibex.nestedvm
 			}
 		}
 
-		public interface CallJavaCB
+		public interface ICallJavaCB
 		{
 			int call(int a, int b, int c, int d);
 		}
@@ -1766,7 +1792,7 @@ namespace org.ibex.nestedvm
 		{
 			if (state != RUNNING)
 			{
-				throw new IllegalStateException("wound up calling sys_calljava while not in RUNNING");
+				throw new ArgumentException("wound up calling sys_calljava while not in RUNNING");
 			}
 			if (callJavaCB != null)
 			{
@@ -2187,17 +2213,12 @@ namespace org.ibex.nestedvm
 				i--;
 			}
 
-			sbyte[] bytes = new sbyte[i - addr];
+			byte[] bytes = new byte[i - addr];
 			copyin(addr, bytes, bytes.Length);
 
-			try
-			{
-				return new string(bytes, "UTF-8");
-			}
-			catch (UnsupportedEncodingException e)
-			{
-				throw new Exception(e); // should never happen with UTF-8
-			}
+			
+        return Encoding.UTF8.GetString(bytes); //new string(bytes, "UTF-8");
+			
 		}
 
 		/// <summary>
@@ -2503,7 +2524,7 @@ namespace org.ibex.nestedvm
 				throw new Exception("should never happen");
 			}
 
-			public override void _close()
+			protected internal override void _close()
 			{
 				if (@is != null) //ignore
 				{
@@ -2565,7 +2586,7 @@ namespace org.ibex.nestedvm
 				}
 			}
 
-			public override FStat _fstat()
+			protected internal override FStat _fstat()
 			{
 				return new SocketFStat();
 			}
@@ -2582,10 +2603,10 @@ namespace org.ibex.nestedvm
 			public TerminalFD(InputStream @is, OutputStream os) : base(@is,os)
 			{
 			}
-			public override void _close() // noop
+			protected internal override void _close() // noop
 			{
 			}
-			public override FStat _fstat()
+      protected internal override FStat _fstat()
 			{
 				return new SocketFStatAnonymousInnerClassHelper(this);
 			}
@@ -2625,9 +2646,9 @@ namespace org.ibex.nestedvm
 			{
 				if (pushedBack != -1)
 				{
-					int c = pushedBack;
+					int ch = pushedBack;
 					pushedBack = -1;
-					return c;
+					return ch;
 				}
 				int c = parent.read();
 				if (c == '\r' && (c = parent.read()) != '\n')
@@ -2664,7 +2685,7 @@ namespace org.ibex.nestedvm
 							int c = parent.read();
 							if (c == '\n')
 							{
-								buf[pos + i] = '\n';
+								buf[pos + i] = (sbyte)'\n';
 							}
 							else
 							{
@@ -2755,15 +2776,15 @@ namespace org.ibex.nestedvm
 		internal class HostFStat : FStat
 		{
 			internal readonly File f;
-			internal readonly Seekable.File sf;
+			internal readonly File sf;
 			internal readonly bool executable;
-			public HostFStat(File f, Seekable.File sf) : this(f,sf,false)
+			public HostFStat(File f, File sf) : this(f,sf,false)
 			{
 			}
 			public HostFStat(File f, bool executable) : this(f,null,executable)
 			{
 			}
-			public HostFStat(File f, Seekable.File sf, bool executable)
+			public HostFStat(File f, File sf, bool executable)
 			{
 				this.f = f;
 				this.sf = sf;
@@ -2775,11 +2796,13 @@ namespace org.ibex.nestedvm
 			}
 			public override int inode()
 			{
-				return f.AbsolutePath.GetHashCode() & 0x7fff;
+        throw new NotImplementedException();
+//				return f.AbsolutePath.GetHashCode() & 0x7fff;
 			}
 			public override int type()
 			{
-				return f.Directory ? S_IFDIR : S_IFREG;
+        throw new NotImplementedException();
+        //				return f.Directory ? S_IFDIR : S_IFREG;
 			}
 			public override int nlink()
 			{
@@ -2787,6 +2810,8 @@ namespace org.ibex.nestedvm
 			}
 			public override int mode()
 			{
+        throw new NotImplementedException();
+        /*
 				int mode = 0;
 				bool canread = f.canRead();
 				if (canread && (executable || f.Directory))
@@ -2802,6 +2827,7 @@ namespace org.ibex.nestedvm
 					mode |= 0x122;
 				}
 				return mode;
+        */    
 			}
 			public override int size()
 			{
@@ -2816,7 +2842,8 @@ namespace org.ibex.nestedvm
 			}
 			public override int mtime()
 			{
-				return (int)(f.lastModified() / 1000);
+        throw new NotImplementedException();
+        //return (int)(f.lastModified() / 1000);
 			}
 		}
 
@@ -2894,9 +2921,9 @@ namespace org.ibex.nestedvm
 		}
 
 		// CPU State
-		protected internal class CPUState
+		protected internal class CpuState
 		{
-			public CPUState() // noop
+			public CpuState() // noop
 			{
 			}
 			/* GPRs */
@@ -2907,9 +2934,9 @@ namespace org.ibex.nestedvm
 			public int fcsr;
 			public int pc;
 
-			public virtual CPUState dup()
+			public virtual CpuState dup()
 			{
-				CPUState c = new CPUState();
+				CpuState c = new CpuState();
 				c.hi = hi;
 				c.lo = lo;
 				c.fcsr = fcsr;
@@ -2923,25 +2950,7 @@ namespace org.ibex.nestedvm
 			}
 		}
 
-		public class SecurityManager
-		{
-			public virtual bool allowRead(File f)
-			{
-				return true;
-			}
-			public virtual bool allowWrite(File f)
-			{
-				return true;
-			}
-			public virtual bool allowStat(File f)
-			{
-				return true;
-			}
-			public virtual bool allowUnlink(File f)
-			{
-				return true;
-			}
-		}
+		
 
 		// Null pointer check helper function
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
@@ -3006,14 +3015,10 @@ namespace org.ibex.nestedvm
 
 		internal static sbyte[] getBytes(string s)
 		{
-			try
-			{
-				return s.getBytes("UTF-8");
-			}
-			catch (UnsupportedEncodingException e)
-			{
-				return null; // should never happen
-			}
+      byte[] foo = Encoding.UTF8.GetBytes(s);
+      sbyte[] bar = new sbyte[foo.Length];
+      Array.ConstrainedCopy(foo,0,bar,0,foo.Length);
+      return bar;
 		}
 
 		internal static sbyte[] getNullTerminatedBytes(string s)
@@ -3038,4 +3043,24 @@ namespace org.ibex.nestedvm
 		}
 	}
 
+
+  public class SecurityManager
+  {
+    public virtual bool allowRead(File f)
+    {
+      return true;
+    }
+    public virtual bool allowWrite(File f)
+    {
+      return true;
+    }
+    public virtual bool allowStat(File f)
+    {
+      return true;
+    }
+    public virtual bool allowUnlink(File f)
+    {
+      return true;
+    }
+  }
 }

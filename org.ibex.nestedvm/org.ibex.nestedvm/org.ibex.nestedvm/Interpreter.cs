@@ -9,13 +9,14 @@ using System.Threading;
 // Copyright 2003 Brian Alliet
 // Based on org.xwt.imp.MIPS by Adam Megacz
 // Portions Copyright 2003 Adam Megacz
+using System.IO;
 
 namespace org.ibex.nestedvm
 {
 
 	using org.ibex.nestedvm.util;
 
-	public class Interpreter : UnixRuntime, ICloneable
+	public class Interpreter : UnixRuntime //, ICloneable
 	{
 		// Registers
 		private int[] registers = new int[32];
@@ -36,7 +37,7 @@ namespace org.ibex.nestedvm
 
 		// The filename if the binary we're running
 		public string image;
-		private ELF.Symtab symtab;
+		private ELF.SymbolTable symtab;
 
 		// Register Operations
 		private bool FC
@@ -52,26 +53,30 @@ namespace org.ibex.nestedvm
 		}
 		private double getDouble(int r)
 		{
-			return double.longBitsToDouble(((fpregs[r + 1] & 0xffffffffL) << 32) | (fpregs[r] & 0xffffffffL));
+      throw new NotImplementedException();
+			//return double.longBitsToDouble(((fpregs[r + 1] & 0xffffffffL) << 32) | (fpregs[r] & 0xffffffffL));
 		}
 		private void setDouble(int r, double d)
 		{
-			long l = double.doubleToLongBits(d);
-			fpregs[r + 1] = (int)((long)((ulong)l >> 32));
-			fpregs[r] = (int)l;
+      throw new NotImplementedException();
+      //long l = double.doubleToLongBits(d);
+			//fpregs[r + 1] = (int)((long)((ulong)l >> 32));
+			//fpregs[r] = (int)l;
 		}
 		private float getFloat(int r)
 		{
-			return float.intBitsToFloat(fpregs[r]);
+      throw new NotImplementedException();
+      //return float.intBitsToFloat(fpregs[r]);
 		}
 		private void setFloat(int r, float f)
 		{
-			fpregs[r] = float.floatToRawIntBits(f);
+      throw new NotImplementedException();
+      //fpregs[r] = float.floatToRawIntBits(f);
 		}
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: protected void _execute() throws ExecutionException
-		protected internal virtual void _execute()
+		protected internal override  void _execute()
 		{
 			try
 			{
@@ -88,10 +93,11 @@ namespace org.ibex.nestedvm
 //ORIGINAL LINE: protected Object clone() throws CloneNotSupportedException
 		protected internal virtual object clone()
 		{
-			Interpreter r = (Interpreter) base.clone();
-			r.registers = (int[]) registers.clone();
-			r.fpregs = (int[]) fpregs.clone();
-			return r;
+      throw new NotImplementedException();
+      //Interpreter r = (Interpreter) base.clone();
+			//r.registers = (int[]) registers.clone();
+			//r.fpregs = (int[]) fpregs.clone();
+			//return r;
 		}
 
 		// Main interpretor
@@ -950,7 +956,7 @@ namespace org.ibex.nestedvm
 		}
 
 		private int gp_Renamed;
-		protected internal virtual int gp()
+		protected internal override int gp()
 		{
 			return gp_Renamed;
 		}
@@ -960,19 +966,19 @@ namespace org.ibex.nestedvm
 		{
 			return userInfo == null ? 0 : userInfo.addr;
 		}
-		protected internal virtual int userInfoSize()
+    protected internal override int userInfoSize()
 		{
 			return userInfo == null ? 0 : userInfo.size;
 		}
 
 		private int entryPoint_Renamed;
-		protected internal virtual int entryPoint()
+		protected internal override int entryPoint()
 		{
 			return entryPoint_Renamed;
 		}
 
 		private int heapStart_Renamed;
-		protected internal virtual int heapStart()
+		protected internal override int heapStart()
 		{
 			return heapStart_Renamed;
 		}
@@ -983,7 +989,9 @@ namespace org.ibex.nestedvm
 		private void loadImage(Seekable data)
 		{
 			ELF elf = new ELF(data);
-			symtab = elf.Symtab;
+      throw new NotSupportedException(); 
+      //TODO: WTF--->
+			//symtab = elf.Symtab;
 
 			if (elf.header.type != ELF.ET_EXEC)
 			{
@@ -1000,7 +1008,7 @@ namespace org.ibex.nestedvm
 
 			entryPoint_Renamed = elf.header.entry;
 
-			ELF.Symtab symtab = elf.Symtab;
+			ELF.SymbolTable symtab = elf.Symtab;
 			if (symtab == null)
 			{
 				throw new IOException("No symtab in binary (did you strip it?)");
@@ -1059,10 +1067,14 @@ namespace org.ibex.nestedvm
 				if (filesize != 0)
 				{
 					filesize = filesize & ~3;
-					DataInputStream dis = new DataInputStream(ph.InputStream);
+          InputStream dis = ph.InputStream; //new Stream(ph.InputStream);
 					do
 					{
-						readPages[(int)((uint)addr >> pageShift)][((int)((uint)addr >> 2)) & (pageWords - 1)] = dis.readInt();
+            int x = dis.read() << 24;
+            x+= dis.read() << 16;
+            x+=dis.read() << 8;
+            x+=dis.read();
+						readPages[(int)((uint)addr >> pageShift)][((int)((uint)addr >> 2)) & (pageWords - 1)] = x;
 						addr += 4;
 						filesize -= 4;
 					} while (filesize > 0);
@@ -1072,7 +1084,7 @@ namespace org.ibex.nestedvm
 			heapStart_Renamed = (brk + pageSize-1) & ~(pageSize-1);
 		}
 
-		protected internal virtual CPUState CPUState
+		protected internal override CpuState CPUState
 		{
 			set
 			{
@@ -1091,7 +1103,7 @@ namespace org.ibex.nestedvm
 			}
 		}
 
-		protected internal virtual void getCPUState(CPUState state)
+		protected internal override void getCPUState(CpuState state)
 		{
 			for (int i = 1;i < 32;i++)
 			{
@@ -1115,21 +1127,25 @@ namespace org.ibex.nestedvm
 		}
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public Interpreter(String filename) throws IOException
-		public Interpreter(string filename) : this(new Seekable.File(filename,false))
+		public Interpreter(string filename) : this(new File(filename,false))
 		{
 			image = filename;
 		}
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public Interpreter(InputStream is) throws IOException
-		public Interpreter(InputStream @is) : this(new Seekable.InputStream(@is))
-		{
-		}
+		//public Interpreter(InputStream @is) //: this(new InputStream(@is))
+		//{
+		//}
+
+//    public Interpreter() {
+//    }
 
 		// Debug functions
 		// NOTE: This probably requires a jdk > 1.1, however, it is only used for debugging
 		private Hashtable sourceLineCache;
 		public virtual string sourceLine(int pc)
 		{
+      /*
 			const string addr2line = "mips-unknown-elf-addr2line";
 			string line = (string)(sourceLineCache == null ? null : sourceLineCache[new int?(pc)]);
 			if (line != null)
@@ -1162,10 +1178,10 @@ namespace org.ibex.nestedvm
 			catch (IOException e)
 			{
 				return null;
-			}
+			} */ throw new NotImplementedException();  
 		}
 
-		public class DebugShutdownHook : Runnable
+		public class DebugShutdownHook //: Runnable
 		{
 			private readonly Interpreter outerInstance;
 
@@ -1177,7 +1193,7 @@ namespace org.ibex.nestedvm
 			public virtual void run()
 			{
 				int pc = outerInstance.pc;
-				if (State == RUNNING)
+				if (outerInstance.State == Runtime.RUNNING)
 				{
 					Console.Error.Write("\nCPU Executing " + toHex(pc) + ": " + outerInstance.sourceLine(pc) + "\n");
 				}
@@ -1190,7 +1206,7 @@ namespace org.ibex.nestedvm
 		{
 			string image = argv[0];
 			Interpreter emu = new Interpreter(image);
-			java.lang.Runtime.Runtime.addShutdownHook(new Thread(new org.ibex.nestedvm.Interpreter.DebugShutdownHook(emu)));
+//			java.lang.Runtime.Runtime.addShutdownHook(new Thread(new org.ibex.nestedvm.Interpreter.DebugShutdownHook(emu)));
 			int status = emu.run(argv);
 			Console.Error.WriteLine("Exit status: " + status);
 			Environment.Exit(status);

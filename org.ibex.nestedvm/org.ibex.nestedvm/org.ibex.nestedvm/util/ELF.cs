@@ -4,6 +4,7 @@ using System.Text;
 // Copyright 2000-2005 the Contributors, as shown in the revision logs.
 // Licensed under the Apache License 2.0 ("the License").
 // You may not use this file except in compliance with the License.
+using System.IO;
 
 namespace org.ibex.nestedvm.util
 {
@@ -244,7 +245,7 @@ namespace org.ibex.nestedvm.util
 			{
 				get
 				{
-					return new BufferedInputStream(new SectionInputStream(outerInstance, offset,offset + filesz));
+					return new InputStream(new SectionInputStream(outerInstance, offset,offset + filesz));
 				}
 			}
 		}
@@ -288,7 +289,7 @@ namespace org.ibex.nestedvm.util
 			{
 				get
 				{
-					return new BufferedInputStream(new SectionInputStream(outerInstance, offset, type == SHT_NOBITS ? 0 : offset + size));
+					return new InputStream(new SectionInputStream(outerInstance, offset, type == SHT_NOBITS ? 0 : offset + size));
 				}
 			}
 
@@ -317,7 +318,7 @@ namespace org.ibex.nestedvm.util
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public ELF(String file) throws IOException, ELFException
-		public ELF(string file) : this(new Seekable.File(file,false))
+		public ELF(string file) : this(new File(file,false))
 		{
 		}
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
@@ -443,10 +444,10 @@ namespace org.ibex.nestedvm.util
 			}
 		}
 
-		private Symtab _symtab;
+		private SymbolTable _symtab;
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public Symtab getSymtab() throws IOException
-		public virtual Symtab Symtab
+    public virtual SymbolTable Symtab
 		{
 			get
 			{
@@ -473,15 +474,15 @@ namespace org.ibex.nestedvm.util
 				}
     
 				sbyte[] strtab = new sbyte[sth.size];
-				DataInputStream dis = new DataInputStream(sth.InputStream);
-				dis.readFully(strtab);
+        InputStream dis = sth.InputStream;
+				dis.tryReadFully(strtab,0,sth.size);
 				dis.close();
     
-				return _symtab = new Symtab(this, sh.offset, sh.size,strtab);
+				return _symtab = new SymbolTable(this, sh.offset, sh.size,strtab);
 			}
 		}
 
-		public class Symtab
+		public class SymbolTable
 		{
 			private readonly ELF outerInstance;
 
@@ -489,7 +490,7 @@ namespace org.ibex.nestedvm.util
 
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: Symtab(int off, int size, byte[] strtab) throws IOException
-			internal Symtab(ELF outerInstance, int off, int size, sbyte[] strtab)
+      internal SymbolTable(ELF outerInstance, int off, int size, sbyte[] strtab)
 			{
 				this.outerInstance = outerInstance;
 				outerInstance.data.seek(off);

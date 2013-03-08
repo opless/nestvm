@@ -3,12 +3,8 @@
 
 namespace org.ibex.nestedvm
 {
-	public interface UsermodeConstants
-	{
-	}
-
-	public static class UsermodeConstants_Fields
-	{
+  public abstract partial class Runtime // UsermodeConstants
+  {
 		public const int SYS_null = 0;
 		public const int SYS_exit = 1;
 		public const int SYS_pause = 2;

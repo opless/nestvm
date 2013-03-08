@@ -157,10 +157,10 @@ namespace org.ibex.nestedvm.util
 				size++;
 			}
 
-			int inode;
-			for (inode = hc & 0x7fff;;inode++)
+			int inode2;
+			for (inode2 = hc & 0x7fff;;inode2++)
 			{
-				dest = inode % totalSlots;
+				dest = inode2 % totalSlots;
 				odest = dest;
 				tries = 1;
 				plus = true;
@@ -176,7 +176,7 @@ namespace org.ibex.nestedvm.util
 							placeholder = dest;
 						}
 					}
-					else if (i == inode)
+					else if (i == inode2)
 					{
 						goto OUTERContinue;
 					}
@@ -198,14 +198,14 @@ namespace org.ibex.nestedvm.util
 			OUTERBreak:
 			keys[slot] = key;
 			reverse_Renamed[dest] = (short) slot;
-			inodes[slot] = (short) inode;
+			inodes[slot] = (short) inode2;
 			if (mru != -1)
 			{
 				prev[slot] = mru;
 				next[mru] = (short) slot;
 			}
 			mru = (short) slot;
-			return (short) inode;
+			return (short) inode2;
 		}
 
 		public virtual object reverse(short inode)
