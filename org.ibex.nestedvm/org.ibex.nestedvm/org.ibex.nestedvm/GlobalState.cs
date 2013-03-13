@@ -312,7 +312,7 @@ namespace org.ibex.nestedvm
     
         //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
         //ORIGINAL LINE: public final FD open(UnixRuntime r, String path, int flags, int mode) throws ErrnoException
-        public org.ibex.nestedvm.Runtime.FD open(UnixRuntime r, string path, int flags, int mode)
+        public org.ibex.nestedvm.FD open(UnixRuntime r, string path, int flags, int mode)
         {
             throw new NotImplementedException();
 
@@ -320,7 +320,7 @@ namespace org.ibex.nestedvm
         }
         //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
         //ORIGINAL LINE: public final FStat stat(UnixRuntime r, String path) throws ErrnoException
-        public org.ibex.nestedvm.Runtime.FStat stat(UnixRuntime r, string path)
+        public org.ibex.nestedvm.FStat stat(UnixRuntime r, string path)
         {
             throw new NotImplementedException();
 
@@ -328,7 +328,7 @@ namespace org.ibex.nestedvm
         }
         //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
         //ORIGINAL LINE: public final FStat lstat(UnixRuntime r, String path) throws ErrnoException
-        public org.ibex.nestedvm.Runtime.FStat lstat(UnixRuntime r, string path)
+        public org.ibex.nestedvm.FStat lstat(UnixRuntime r, string path)
         {
             throw new NotImplementedException();
 

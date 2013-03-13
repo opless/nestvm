@@ -1,6 +1,6 @@
 namespace org.ibex.nestedvm
 {
-    internal class CpuState
+    public class CpuState
     {
         public CpuState() // noop
         {

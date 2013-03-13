@@ -2384,7 +2384,7 @@ namespace org.ibex.nestedvm
       //ORIGINAL LINE: public int read(byte[] a, int off, int length) throws ErrnoException
       public virtual int read(sbyte[] a, int off, int length)
       {
-          throw new ErrnoException(EBADFD);
+      throw new ErrnoException(Runtime.EBADFD);
       }
       /// <summary>
       /// Write. Should return the number of bytes written or throw an IOException on error </summary>
@@ -2392,7 +2392,7 @@ namespace org.ibex.nestedvm
       //ORIGINAL LINE: public int write(byte[] a, int off, int length) throws ErrnoException
       public virtual int write(sbyte[] a, int off, int length)
       {
-          throw new ErrnoException(EBADFD);
+      throw new ErrnoException(Runtime.EBADFD);
       }
 
       /// <summary>
@@ -2408,7 +2408,7 @@ namespace org.ibex.nestedvm
       //ORIGINAL LINE: public int getdents(byte[] a, int off, int length) throws ErrnoException
       public virtual int getdents(sbyte[] a, int off, int length)
       {
-          throw new ErrnoException(EBADFD);
+      throw new ErrnoException(Runtime.EBADFD);
       }
 
       /// <summary>

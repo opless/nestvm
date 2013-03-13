@@ -7,7 +7,7 @@ namespace org.ibex.nestedvm
         public readonly int addr;
         public readonly Exception cause;
         public FaultException(int addr)
-            : base("fault at: " + toHex(addr))
+            : base("fault at: 0x" + (addr).ToString("X8"))
         {
             this.addr = addr;
             cause = null;

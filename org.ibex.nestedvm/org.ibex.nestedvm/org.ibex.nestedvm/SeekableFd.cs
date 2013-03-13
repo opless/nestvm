@@ -35,12 +35,12 @@ namespace org.ibex.nestedvm
             {
                 switch (whence)
                 {
-                    case SEEK_SET:
+          case Runtime.SEEK_SET:
                         break;
-                    case SEEK_CUR:
+          case Runtime.SEEK_CUR:
                         n += data.pos();
                         break;
-                    case SEEK_END:
+          case Runtime.SEEK_END:
                         n += data.length();
                         break;
                     default:
@@ -51,7 +51,7 @@ namespace org.ibex.nestedvm
             }
             catch (IOException e)
             {
-                throw new ErrnoException(ESPIPE);
+        throw new ErrnoException(Runtime.ESPIPE);
             }
         }
 
@@ -59,14 +59,14 @@ namespace org.ibex.nestedvm
         //ORIGINAL LINE: public int write(byte[] a, int off, int length) throws ErrnoException
         public override int write(sbyte[] a, int off, int length)
         {
-            if ((flags_Renamed & 3) == RD_ONLY)
+      if ((flags_Renamed & 3) == Runtime.RD_ONLY)
             {
-                throw new ErrnoException(EBADFD);
+        throw new ErrnoException(Runtime.EBADFD);
             }
             // NOTE: There is race condition here but we can't fix it in pure java
-            if ((flags_Renamed & O_APPEND) != 0)
+      if ((flags_Renamed & Runtime.O_APPEND) != 0)
             {
-                seek(0, SEEK_END);
+        seek(0, Runtime.SEEK_END);
             }
             try
             {
@@ -74,7 +74,7 @@ namespace org.ibex.nestedvm
             }
             catch (IOException e)
             {
-                throw new ErrnoException(EIO);
+        throw new ErrnoException(Runtime.EIO);
             }
         }
 
@@ -82,9 +82,9 @@ namespace org.ibex.nestedvm
         //ORIGINAL LINE: public int read(byte[] a, int off, int length) throws ErrnoException
         public override int read(sbyte[] a, int off, int length)
         {
-            if ((flags_Renamed & 3) == WR_ONLY)
+      if ((flags_Renamed & 3) == Runtime.WR_ONLY)
             {
-                throw new ErrnoException(EBADFD);
+        throw new ErrnoException(Runtime.EBADFD);
             }
             try
             {
@@ -93,7 +93,7 @@ namespace org.ibex.nestedvm
             }
             catch (IOException e)
             {
-                throw new ErrnoException(EIO);
+        throw new ErrnoException(Runtime.EIO);
             }
         }
 
