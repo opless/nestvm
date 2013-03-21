@@ -65,6 +65,7 @@
     <Compile Include="util\Seekable.cs" />
     <Compile Include="Win32ConsoleIS.cs" />
     <Compile Include="WriteFaultException.cs" />
+    <Compile Include="MipsInterpreter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
