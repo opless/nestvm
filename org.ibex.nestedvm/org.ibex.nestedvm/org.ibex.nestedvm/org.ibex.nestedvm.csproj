@@ -65,7 +65,6 @@
     <Compile Include="util\Seekable.cs" />
     <Compile Include="Win32ConsoleIS.cs" />
     <Compile Include="WriteFaultException.cs" />
-    <Compile Include="MipsInterpreter.cs" />
     <Compile Include="ISysCallDispatcher.cs" />
     <Compile Include="IVirtualMemory.cs" />
     <Compile Include="BasicVirtualMemoryImplementation.cs" />
@@ -76,6 +75,8 @@
     <Compile Include="IVirtualFileSystem.cs" />
     <Compile Include="BasicVirtualFileSystemImplementation.cs" />
     <Compile Include="IProcessManager.cs" />
+    <Compile Include="MipsInterpreter.cs" />
+    <Compile Include="ICpuInterpreter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />

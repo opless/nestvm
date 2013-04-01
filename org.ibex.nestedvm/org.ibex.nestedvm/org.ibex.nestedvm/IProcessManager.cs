@@ -13,13 +13,27 @@ namespace org.ibex.nestedvm
 {
   public interface IProcessManager
   {
-    int GetEffectiveGroupId(MipsInterpreter interp);
+    int UMask(int mode);
 
-    int GetGroupId(MipsInterpreter interp);
+    int SysCtl(ICpuInterpreter interp, int nameAddr, int nameLen, int oldP, int oldLenAddr, int newP, int newLen);
 
-    int GetEffectiveUserId(MipsInterpreter interp);
+    int GetPPid(ICpuInterpreter interp);
 
-    int GetUserId(MipsInterpreter interp);
+    int ChDir(ICpuInterpreter interp, int cstringArg);
+
+    int GetCwd(ICpuInterpreter interp, int addr, int size);
+
+    int Fork(ICpuInterpreter interp);
+
+    int Kill(ICpuInterpreter interp, int pid, int signal);
+
+    int GetEffectiveGroupId(ICpuInterpreter interp);
+
+    int GetGroupId(ICpuInterpreter interp);
+
+    int GetEffectiveUserId(ICpuInterpreter interp);
+
+    int GetUserId(ICpuInterpreter interp);
   }
 }
 

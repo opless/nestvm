@@ -11,10 +11,13 @@ using System;
 
 namespace org.ibex.nestedvm
 {
-  public interface ISysCallDispatcher
+  public interface ICpuInterpreter
   {
-    int Dispatch(ICpuInterpreter interp,int syscall,int a, int b, int c, int d, int e, int f);
-  }
+    IVirtualFileSystem GetVirtFS();
 
+    IVirtualMemory GetVirtMem();
+
+    IProcessManager GetProcMgr();
+  }
 }
 

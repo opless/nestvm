@@ -526,143 +526,143 @@ namespace org.ibex.nestedvm
 
 
 
-    int sys_exit(MipsInterpreter interp,int value)
+    int sys_exit(ICpuInterpreter interp,int value)
     {
       return interp.GetProcMgr().Exit(interp,value);
     }
 
-    int sys_pause(MipsInterpreter interp)
+    int sys_pause(ICpuInterpreter interp)
     {
       throw new NotImplementedException();
     }
 
-    int sys_write(MipsInterpreter interp,int fd, int addr, int count)
+    int sys_write(ICpuInterpreter interp,int fd, int addr, int count)
     {
 
       return interp.GetVirtFS().Write(interp,fd,addr,count);
     }
 
-    int sys_fstat(MipsInterpreter interp,int fd, int buffAddr)
+    int sys_fstat(ICpuInterpreter interp,int fd, int buffAddr)
     {
       return interp.GetVirtFS().FStat(interp,fd,buffAddr);
     }
 
-    int sbrk(MipsInterpreter interp,int a)
+    int sbrk(ICpuInterpreter interp,int a)
     {
       throw new NotImplementedException();
     }
 
-    int sys_open(MipsInterpreter interp,int nameAddr, int oflag, int mode)
+    int sys_open(ICpuInterpreter interp,int nameAddr, int oflag, int mode)
     {
       return interp.GetVirtFS().Open(interp,nameAddr,oflag,mode);
     }
 
-    int sys_close(MipsInterpreter interp,int fd)
+    int sys_close(ICpuInterpreter interp,int fd)
     {
       return interp.GetVirtFS().Close(interp, fd);
     }
 
-    int sys_read(MipsInterpreter interp,int fd, int addr, int count)
+    int sys_read(ICpuInterpreter interp,int fd, int addr, int count)
     {
       return interp.GetVirtFS().Read(interp, fd, addr, count);
     }
 
-    int sys_lseek(MipsInterpreter interp,int fd, int offset, int whence)
+    int sys_lseek(ICpuInterpreter interp,int fd, int offset, int whence)
     {
       return interp.GetVirtFS().LSeek(interp,fd,offset,whence);
     }
 
-    int sys_ftruncate(MipsInterpreter interp,int fd, int length)
+    int sys_ftruncate(ICpuInterpreter interp,int fd, int length)
     {
       return interp.GetVirtFS().FTruncate(interp,fd,length);
     }
 
-    int sys_getpid(MipsInterpreter interp)
+    int sys_getpid(ICpuInterpreter interp)
     {
       return interp.GetProcMgr().GetProcessId(interp);
     }
 
-    int sys_call_internal(MipsInterpreter interp,int a, int b, int c, int d)
+    int sys_call_internal(ICpuInterpreter interp,int a, int b, int c, int d)
     {
       throw new NotImplementedException();
     }
 
-    int sys_gettimeofday(MipsInterpreter interp,int a, int b)
+    int sys_gettimeofday(ICpuInterpreter interp,int a, int b)
     {
       throw new NotImplementedException();
     }
 
-    int sys_sleep(MipsInterpreter interp,int a)
+    int sys_sleep(ICpuInterpreter interp,int a)
     {
       throw new NotImplementedException();
     }
 
-    int sys_times(MipsInterpreter interp,int a)
+    int sys_times(ICpuInterpreter interp,int a)
     {
       throw new NotImplementedException();
     }
 
-    int sys_getpagesize(MipsInterpreter interp)
+    int sys_getpagesize(ICpuInterpreter interp)
     {
       throw new NotImplementedException();
     }
 
-    int sys_fcntl(MipsInterpreter interp,int fd, int cmd, int arg)
+    int sys_fcntl(ICpuInterpreter interp,int fd, int cmd, int arg)
     {
       return interp.GetVirtFS().FCntl(interp,fd,cmd,arg);
     }
 
-    int sys_sysconf(MipsInterpreter interp,int a)
+    int sys_sysconf(ICpuInterpreter interp,int a)
     {
       throw new NotImplementedException();
     }
 
-    int sys_getuid(MipsInterpreter interp)
+    int sys_getuid(ICpuInterpreter interp)
     {
       return interp.GetProcMgr().GetUserId(interp);
     }
 
-    int sys_geteuid(MipsInterpreter interp)
+    int sys_geteuid(ICpuInterpreter interp)
     {
       return interp.GetProcMgr().GetEffectiveUserId(interp);
     }
 
-    int sys_getgid(MipsInterpreter interp)
+    int sys_getgid(ICpuInterpreter interp)
     {
       return interp.GetProcMgr().GetGroupId(interp);
     }
 
-    int sys_getegid(MipsInterpreter interp)
+    int sys_getegid(ICpuInterpreter interp)
     {
       return interp.GetProcMgr().GetEffectiveGroupId(interp);
     }
 
-    int fsync(MipsInterpreter interp,int fd)
+    int fsync(ICpuInterpreter interp,int fd)
     {
       return interp.GetVirtFS().FSync(interp,fd);
     }
 
-    int sys_kill(MipsInterpreter interp,int pid, int signal)
+    int sys_kill(ICpuInterpreter interp,int pid, int signal)
     {
       return interp.GetProcMgr().Kill(interp,pid,signal);
     }
 
-    int sys_fork(MipsInterpreter interp)
+    int sys_fork(ICpuInterpreter interp)
     {
       return interp.GetProcMgr().Fork(interp);
     }
 
-    int sys_pipe(MipsInterpreter interp,int addr)
+    int sys_pipe(ICpuInterpreter interp,int addr)
     {
       return interp.GetVirtFS().Pipe(interp,addr);
     }
 
-    int sys_dup2(MipsInterpreter interp,int fda, int fdb)
+    int sys_dup2(ICpuInterpreter interp,int fda, int fdb)
     {
       return interp.GetVirtFS().Dup2(interp,fda,fdb);
     }
 
-    int sys_dup(MipsInterpreter interp,int fd)
+    int sys_dup(ICpuInterpreter interp,int fd)
     {
       return interp.GetVirtFS().Dup(interp,fd);
     }
@@ -672,22 +672,22 @@ namespace org.ibex.nestedvm
       throw new NotImplementedException();
     }
 
-    int sys_stat(MipsInterpreter interp,int cstringArg, int addr)
+    int sys_stat(ICpuInterpreter interp,int cstringArg, int addr)
     {
       return interp.GetVirtFS().Stat(interp,cstringArg,addr);
     }
 
-    int sys_lstat(MipsInterpreter interp,int cstringArg, int addr)
+    int sys_lstat(ICpuInterpreter interp,int cstringArg, int addr)
     {
       return interp.GetVirtFS().LStat(interp,cstringArg,addr);
     }
 
-    int sys_mkdir(MipsInterpreter interp,int cstringArg, int mode)
+    int sys_mkdir(ICpuInterpreter interp,int cstringArg, int mode)
     {
       return interp.GetVirtFS().MkDir(interp,cstringArg,mode);
     }
 
-    int sys_getcwd(MipsInterpreter interp,int addr, int size)
+    int sys_getcwd(ICpuInterpreter interp,int addr, int size)
     {
       //return interp.GetVirtFS().GetCwd(interp,addr,size);
       return interp.GetProcMgr().GetCwd(interp,addr,size);
@@ -698,87 +698,87 @@ namespace org.ibex.nestedvm
       throw new NotImplementedException();
     }
 
-    int sys_chdir(MipsInterpreter interp,int cstringArg)
+    int sys_chdir(ICpuInterpreter interp,int cstringArg)
     {
-      return interp.GetProcMgr().ChDir(cstringArg);
+      return interp.GetProcMgr().ChDir(interp, cstringArg);
     }
 
-    int sys_getdents(MipsInterpreter interp,int a, int b, int c, int d)
+    int sys_getdents(ICpuInterpreter interp,int a, int b, int c, int d)
     {
       throw new NotImplementedException();
     }
 
-    int sys_getppid(MipsInterpreter interp)
+    int sys_getppid(ICpuInterpreter interp)
     {
       return interp.GetProcMgr().GetPPid(interp);
     }
 
-    int sys_unlink(MipsInterpreter interp,int cstringArg)
+    int sys_unlink(ICpuInterpreter interp,int cstringArg)
     {
       return interp.GetVirtFS().Unlink(interp,cstringArg);
     }
 
-    int sys_sysctl(MipsInterpreter interp,int nameAddr, int nameLen, int oldP, int oldLenAddr, int newP, int newLen)//(int a, int b, int c, int d, int e, int f)
+    int sys_sysctl(ICpuInterpreter interp,int nameAddr, int nameLen, int oldP, int oldLenAddr, int newP, int newLen)//(int a, int b, int c, int d, int e, int f)
     {
       return interp.GetProcMgr().SysCtl(interp,nameAddr,nameLen,oldP,oldLenAddr,newP,newLen);
     }
 
-    int sys_access(MipsInterpreter interp,int cstringArg, int mode)
+    int sys_access(ICpuInterpreter interp,int cstringArg, int mode)
     {
       return interp.GetVirtFS().Access(interp,cstringArg,mode);
     }
 
-    int sys_realpath(MipsInterpreter interp,int inAddr, int outAddr)
+    int sys_realpath(ICpuInterpreter interp,int inAddr, int outAddr)
     {
       return interp.GetVirtFS().RealPath(interp,inAddr,outAddr);
     }
 
-    int sys_chown(MipsInterpreter interp,int cStringAddr, int owner, int group)
+    int sys_chown(ICpuInterpreter interp,int cStringAddr, int owner, int group)
     {
       return interp.GetVirtFS().Chown(interp,cStringAddr,owner,group);
     }
     
-    int sys_lchown(MipsInterpreter interp,int cStringAddr, int owner, int group)
+    int sys_lchown(ICpuInterpreter interp,int cStringAddr, int owner, int group)
     {
       return interp.GetVirtFS().LChown(interp,cStringAddr,owner,group); // doesn't follow symlinks
     }
     
-    int sys_fchown(MipsInterpreter interp,int fd, int owner, int group)
+    int sys_fchown(ICpuInterpreter interp,int fd, int owner, int group)
     {
       return interp.GetVirtFS().FChown(interp,fd,owner,group); 
     }
 
-    int sys_chmod(MipsInterpreter interp,int cStringAddr, int mode)
+    int sys_chmod(ICpuInterpreter interp,int cStringAddr, int mode)
     {
       return interp.GetVirtFS().Chmod(interp,cStringAddr,mode); 
     }
 
-    int sys_fchmod(MipsInterpreter interp,int fd, int mode)
+    int sys_fchmod(ICpuInterpreter interp,int fd, int mode)
     {
       return interp.GetVirtFS().FChmod(interp,fd,mode); 
     }
 
-    int sys_fcntl_lock(MipsInterpreter interp,int fd, int cmd, int arg)
+    int sys_fcntl_lock(ICpuInterpreter interp,int fd, int cmd, int arg)
     {
       return interp.GetVirtFS().FCntlLock(interp,fd,cmd,arg);
     }
 
-    int sys_umask(MipsInterpreter interp,int mode)
+    int sys_umask(ICpuInterpreter interp,int mode)
     {
       return interp.GetProcMgr().UMask(mode);
     }
 
-    int sys_mount(MipsInterpreter interp, int cStringType, int cStringDir, int flags, int d, int e)
+    int sys_mount(ICpuInterpreter interp, int cStringType, int cStringDir, int flags, int d, int e)
     {
       throw new NotImplementedException();
     }
 
-    int sys_unmount(MipsInterpreter interp, int cStringAddr, int flags)
+    int sys_unmount(ICpuInterpreter interp, int cStringAddr, int flags)
     {
       throw new NotImplementedException();
     }
 
-    public int Dispatch(MipsInterpreter interp,int syscall, int a, int b, int c, int d, int e, int f)
+    public int Dispatch(ICpuInterpreter interp,int syscall, int a, int b, int c, int d, int e, int f)
     {
       switch (syscall)
       {

@@ -14,39 +14,39 @@ namespace org.ibex.nestedvm
   class BasicVirtualFileSystemImplementation : IVirtualFileSystem
   {
     #region IVirtualFileSystem implementation
-    public int Open(MipsInterpreter interp, int nameAddr, int oflag, int mode)
+    public int Open(ICpuInterpreter interp, int nameAddr, int oflag, int mode)
     {
       throw new NotImplementedException();
     }
-    public int Close(MipsInterpreter interp, int fd)
+    public int Close(ICpuInterpreter interp, int fd)
     {
       throw new NotImplementedException();
     }
-    public int Write(MipsInterpreter interp, int fd, int addr, int count)
+    public int Write(ICpuInterpreter interp, int fd, int addr, int count)
     {
       throw new NotImplementedException();
     }
-    public int Read(MipsInterpreter interp, int fd, int addr, int count)
+    public int Read(ICpuInterpreter interp, int fd, int addr, int count)
     {
       throw new NotImplementedException();
     }
-    public int FStat(MipsInterpreter interp, int fd, int buffAddr)
+    public int FStat(ICpuInterpreter interp, int fd, int buffAddr)
     {
       throw new NotImplementedException();
     }
-    public int LSeek(MipsInterpreter interp, int fd, int offset, int whence)
+    public int LSeek(ICpuInterpreter interp, int fd, int offset, int whence)
     {
       throw new NotImplementedException();
     }
-    public int FTruncate(MipsInterpreter interp, int fd, int length)
+    public int FTruncate(ICpuInterpreter interp, int fd, int length)
     {
       throw new NotImplementedException();
     }
-    public int FSync(MipsInterpreter interp, int fd)
+    public int FSync(ICpuInterpreter interp, int fd)
     {
       throw new NotImplementedException();
     }
-    public int FCntl(MipsInterpreter interp, int fd, int cmd, int arg)
+    public int FCntl(ICpuInterpreter interp, int fd, int cmd, int arg)
     {
       throw new NotImplementedException();
     }
