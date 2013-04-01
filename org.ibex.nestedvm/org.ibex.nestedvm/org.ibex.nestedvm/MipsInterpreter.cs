@@ -48,7 +48,7 @@ namespace org.ibex.nestedvm
     public const int S7 = 23;
     #endregion
 
-    int[] registers;
+    int[] registers = new int[32];
     int pc;
     int hi;
     int lo;
@@ -57,32 +57,59 @@ namespace org.ibex.nestedvm
     int state=0;
     int RUNNING=0;
 
+    ISysCallDispatcher syscall;
+    IVirtualMemory     virtmem;
+    IVirtualFileSystem virtfs;
+    IProcessManager    procMgr;
 
     public MipsInterpreter()
     {
+      virtmem = new BasicVirtualMemoryImplementation();
+      syscall = new BasicSysCallDispatcher();
+      virtfs = new BasicVirtualFileSystemImplementation();
+      procMgr = null;
     }
 
-    int memRead(int addr)
+    public IProcessManager GetProcMgr()
     {
-      throw new NotImplementedException();
+      return procMgr;
     }
 
-    void memWrite(int addr, int value)
+    public IVirtualFileSystem GetVirtFS()
     {
-      throw new NotImplementedException();
+      return virtfs;
     }
 
-    int syscall(int i, int i2, int i3, int i4, int i5, int i6, int i7)
+    public IVirtualMemory GetVirtMem()
     {
-      throw new NotImplementedException();
+      return virtmem;
     }
 
-    int ReadPages(int addr)
+
+
+    int MemRead(int addr)
     {
-      // tmp = readPages [(int)((uint)addr >> pageShift)] [((int)((uint)addr >> 2)) & (PAGE_WORDS - 1)];
-      throw new NotImplementedException();
-
+      return virtmem.Read(addr);
     }
+
+    void MemWrite(int addr, int value)
+    {
+      virtmem.Write(addr,value);
+    }
+    /*
+     *    /// The syscall dispatcher.
+    ///    The should be called by subclasses when the syscall instruction is invoked.
+    ///    <i>syscall</i> should be the contents of V0 and <i>a</i>, <i>b</i>, <i>c</i>, and <i>d</i> should be 
+    ///    the contenst of A0, A1, A2, and A3. The call MAY change the state </summary>
+    ///    <seealso cref= Runtime#state state  </seealso>
+/*/
+
+    int SysCall(int sys, int a, int b, int c, int d, int e, int f)
+    {
+      return syscall.Dispatch(this,sys,a,b,c,d,e,f);
+    }
+
+
 
     private int runSome()
     {
@@ -101,14 +128,14 @@ namespace org.ibex.nestedvm
           try
           {
             //insn = readPages [(int)((uint)pc >> pageShift)] [((int)((uint)pc >> 2)) & PAGE_WORDS - 1];
-            insn = memRead(pc);
+            insn = MemRead(pc);
           } catch (Exception e)
           {
             if ((uint)pc == 0xdeadbeef)
             {
               throw new Exception("fell off cpu: r2: " + r [2]);
             }
-            insn = memRead(pc);
+            insn = MemRead(pc);
           }
           
           int op = ((int)((uint)insn >> 26)) & 0xff; // bits 26-31
@@ -171,7 +198,7 @@ namespace org.ibex.nestedvm
                   goto OUTERContinue;
                 case 12: // SYSCALL
                   this.pc = pc;
-                  r [V0] = syscall(r [V0], r [A0], r [A1], r [A2], r [A3], r [T0], r [T1]);
+                  r [V0] = SysCall(r [V0], r [A0], r [A1], r [A2], r [A3], r [T0], r [T1]);
                   if (state != RUNNING)
                   {
                     this.pc = nextPC;
@@ -599,7 +626,7 @@ namespace org.ibex.nestedvm
               //{
               //  tmp = memRead(addr & ~3);
               //}
-              tmp = memRead(addr);
+              tmp = MemRead(addr);
               switch (addr & 3)
               {
                 case 0:
@@ -632,7 +659,7 @@ namespace org.ibex.nestedvm
 //              {
 //                tmp = memRead(addr & ~3);
 //              }
-              tmp = memRead(addr);
+              tmp = MemRead(addr);
               switch (addr & 3)
               {
                 case 0:
@@ -661,7 +688,7 @@ namespace org.ibex.nestedvm
 //              {
 //                tmp = memRead(addr & ~3);
 //              }
-              tmp = memRead(addr);
+              tmp = MemRead(addr);
 
               switch (addr & 3)
               {
@@ -689,7 +716,7 @@ namespace org.ibex.nestedvm
 //              {
 //                r [rt] = memRead(addr);
 //              }
-              r[rt] = memRead(addr);
+              r[rt] = MemRead(addr);
 
               break;
             case 36: // LBU
@@ -702,7 +729,7 @@ namespace org.ibex.nestedvm
 //              {
 //                tmp = memRead(addr);
 //              }
-              tmp = memRead(addr);
+              tmp = MemRead(addr);
 
               switch (addr & 3)
               {
@@ -731,7 +758,7 @@ namespace org.ibex.nestedvm
 //              {
 //                tmp = memRead(addr & ~3);
 //              }
-              tmp = memRead(addr);
+              tmp = MemRead(addr);
 
               switch (addr & 3)
               {
@@ -756,7 +783,7 @@ namespace org.ibex.nestedvm
 //              {
 //                tmp = memRead(addr & ~3);
 //              }
-              tmp = memRead(addr);
+              tmp = MemRead(addr);
 
               switch (addr & 3)
               {
@@ -785,7 +812,7 @@ namespace org.ibex.nestedvm
 //              {
 //                tmp = memRead(addr & ~3);
 //              }
-              tmp = memRead(addr);
+              tmp = MemRead(addr);
 
               switch (addr & 3)
               {
@@ -809,7 +836,7 @@ namespace org.ibex.nestedvm
 //              {
 //                memWrite(addr & ~3, tmp);
 //              }
-              memWrite(addr,tmp);
+              MemWrite(addr,tmp);
               break;
             }
             case 41: // SH
@@ -822,7 +849,7 @@ namespace org.ibex.nestedvm
 //              {
 //                tmp = memRead(addr & ~3);
 //              }
-              tmp = memRead(addr);
+              tmp = MemRead(addr);
 
               switch (addr & 3)
               {
@@ -842,14 +869,14 @@ namespace org.ibex.nestedvm
 //              {
 //                memWrite(addr & ~3, tmp);
 //              }
-              memWrite(addr,tmp);
+              MemWrite(addr,tmp);
 
               break;
             }
             case 42: // SWL
             {
               addr = r [rs] + signedImmediate;
-              tmp = memRead(addr & ~3);
+              tmp = MemRead(addr & ~3);
               switch (addr & 3)
               {
                 case 0:
@@ -872,7 +899,7 @@ namespace org.ibex.nestedvm
 //              {
 //                memWrite(addr & ~3, tmp);
 //              }
-              memWrite(addr,tmp);
+              MemWrite(addr,tmp);
 
               break;
             }
@@ -885,13 +912,13 @@ namespace org.ibex.nestedvm
 //              {
 //                memWrite(addr & ~3, r [rt]);
 //              }
-              memWrite(addr,r[rt]);
+              MemWrite(addr,r[rt]);
 
               break;
             case 46: // SWR
             {
               addr = r [rs] + signedImmediate;
-              tmp = memRead(addr & ~3);
+              tmp = MemRead(addr & ~3);
               switch (addr & 3)
               {
                 case 0:
@@ -907,12 +934,12 @@ namespace org.ibex.nestedvm
                   tmp = (tmp & 0x00000000) | (r [rt] << 0);
                   break;
               }
-              memWrite(addr & ~3, tmp);
+              MemWrite(addr & ~3, tmp);
               break;
             }
               // Needs to be atomic w/ threads
             case 48: // LWC0/LL
-              r [rt] = memRead(r [rs] + signedImmediate);
+              r [rt] = MemRead(r [rs] + signedImmediate);
               break;
             case 49: // LWC1
               throw new NotImplementedException("No FPU");
@@ -920,7 +947,7 @@ namespace org.ibex.nestedvm
               //break;
               // Needs to be atomic w/ threads
             case 56:
-              memWrite(r [rs] + signedImmediate, r [rt]);
+              MemWrite(r [rs] + signedImmediate, r [rt]);
               r [rt] = 1;
               break;
             case 57: // SWC1

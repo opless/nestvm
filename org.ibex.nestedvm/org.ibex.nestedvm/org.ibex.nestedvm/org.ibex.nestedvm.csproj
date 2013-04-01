@@ -66,6 +66,16 @@
     <Compile Include="Win32ConsoleIS.cs" />
     <Compile Include="WriteFaultException.cs" />
     <Compile Include="MipsInterpreter.cs" />
+    <Compile Include="ISysCallDispatcher.cs" />
+    <Compile Include="IVirtualMemory.cs" />
+    <Compile Include="BasicVirtualMemoryImplementation.cs" />
+    <Compile Include="BasicSysCallDispatcher.cs" />
+    <Compile Include="IFile.cs" />
+    <Compile Include="IDirectory.cs" />
+    <Compile Include="IInOutStream.cs" />
+    <Compile Include="IVirtualFileSystem.cs" />
+    <Compile Include="BasicVirtualFileSystemImplementation.cs" />
+    <Compile Include="IProcessManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup />
