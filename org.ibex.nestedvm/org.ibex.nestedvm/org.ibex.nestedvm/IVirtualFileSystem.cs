@@ -13,7 +13,6 @@ namespace org.ibex.nestedvm
 {
   public interface IVirtualFileSystem
   {
-    int FCntlLock(ICpuInterpreter interp, int fd, int cmd, int arg);
 
     int FChmod(ICpuInterpreter interp, int fd, int mode);
 

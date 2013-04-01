@@ -667,7 +667,7 @@ namespace org.ibex.nestedvm
       return interp.GetVirtFS().Dup(interp,fd);
     }
 
-    int sys_waitpid(int a, int b, int c)
+    int sys_waitpid(ICpuInterpreter interp,int a, int b, int c)
     {
       throw new NotImplementedException();
     }
@@ -693,7 +693,7 @@ namespace org.ibex.nestedvm
       return interp.GetProcMgr().GetCwd(interp,addr,size);
     }
 
-    int sys_exec(int a, int b, int c)
+    int sys_exec(ICpuInterpreter interp,int a, int b, int c)
     {
       throw new NotImplementedException();
     }
@@ -758,10 +758,7 @@ namespace org.ibex.nestedvm
       return interp.GetVirtFS().FChmod(interp,fd,mode); 
     }
 
-    int sys_fcntl_lock(ICpuInterpreter interp,int fd, int cmd, int arg)
-    {
-      return interp.GetVirtFS().FCntlLock(interp,fd,cmd,arg);
-    }
+
 
     int sys_umask(ICpuInterpreter interp,int mode)
     {
@@ -909,11 +906,11 @@ namespace org.ibex.nestedvm
         case SYS_fchown:
           return sys_fchown(interp,a, b, c);
         case SYS_chmod:
-          return sys_chmod(interp,a, b, c);
+          return sys_chmod(interp,a, b);
         case SYS_fchmod:
-          return sys_fchmod(interp,a, b, c);
-        case SYS_fcntl:
-          return sys_fcntl_lock(interp,a, b, c);
+          return sys_fchmod(interp,a, b);
+       // case SYS_fcntl:
+       //   return sys_fcntl_lock(interp,a, b, c);
         case SYS_umask:
           return sys_umask(interp,a);
 
@@ -921,7 +918,7 @@ namespace org.ibex.nestedvm
         case SYS_mount:
           return sys_mount(interp,a,b,c,d,e);
         case SYS_umount:
-          return sys_unmount(interp,a);
+          return sys_unmount(interp,a,b);
         
         default:
           //if (STDERR_DIAG)

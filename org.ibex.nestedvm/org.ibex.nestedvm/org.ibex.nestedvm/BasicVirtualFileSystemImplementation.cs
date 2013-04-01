@@ -50,6 +50,77 @@ namespace org.ibex.nestedvm
     {
       throw new NotImplementedException();
     }
+
+    public int FChmod(ICpuInterpreter interp, int fd, int mode)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int Chmod(ICpuInterpreter interp, int cStringAddr, int mode)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int FChown(ICpuInterpreter interp, int fd, int owner, int group)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int LChown(ICpuInterpreter interp, int cStringAddr, int owner, int group)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int Chown(ICpuInterpreter interp, int cStringAddr, int owner, int group)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int RealPath(ICpuInterpreter interp, int inAddr, int outAddr)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int Access(ICpuInterpreter interp, int cstringArg, int mode)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int Unlink(ICpuInterpreter interp, int cstringArg)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int MkDir(ICpuInterpreter interp, int cstringArg, int mode)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int LStat(ICpuInterpreter interp, int cstringArg, int addr)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int Stat(ICpuInterpreter interp, int cstringArg, int addr)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int Dup(ICpuInterpreter interp, int fd)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int Dup2(ICpuInterpreter interp, int fda, int fdb)
+    {
+      throw new NotImplementedException();
+    }
+
+    public int Pipe(ICpuInterpreter interp, int addr)
+    {
+      throw new NotImplementedException();
+    }
+
     #endregion
   }
 

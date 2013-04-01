@@ -8,11 +8,85 @@
 //
 //
 using System;
+using org.ibex.nestedvm.util;
 
 namespace org.ibex.nestedvm
 {
-  public class MipsInterpreter
+  public class MipsInterpreter : ICpuInterpreter
   {
+
+    public void LoadImage(string filename)
+    {
+      Console.WriteLine("Loading \"{0}\"", filename);
+
+      ELF elf = new ELF(filename);
+      if (elf.header.type != ELF.ET_EXEC)
+      {
+        throw new ArgumentException("Not an Executable", "filename");
+      }
+      if (elf.header.machine != ELF.EM_MIPS)
+      {
+        throw new ArgumentException("Not an MIPS Executable", "filename");
+      }
+      if (elf.ident.data != ELF.ELFDATA2MSB)
+      {
+        throw new ArgumentException("Binary is not big endian");
+      }
+
+      ELF.Symbol gpsym = elf.Symtab.getGlobalSymbol("_gp");
+      
+      if (gpsym == null)
+      {
+        throw new ArgumentException("NO _gp symbol!");
+      }
+      int gp = gpsym.addr;
+
+      int phId = 0;
+      foreach (var ph in elf.pheaders)
+      {
+        phId ++;
+        if (ph.type != ELF.PT_LOAD)
+        {
+          Console.WriteLine("Skipping Program Header {0}", phId);
+          continue;
+        }
+        Console.WriteLine("Loading Program Header {0}", phId);
+
+        InputStream inp = ph.InputStream;
+
+        for (int i=0; i< ph.filesz; i++)
+        {
+          int x = inp.read() << 24;
+          x += inp.read() << 16;
+          x += inp.read() << 8;
+          x += inp.read();
+          virtmem.Write(ph.vaddr + i, x);
+          switch (i % 4)
+          {
+            case 0:
+              Console.Write("-");
+              break;
+            case 1:
+              Console.Write("/");
+              break;
+            case 2:
+              Console.Write("|");
+              break;
+            case 3:
+              Console.Write("\\");
+              break;
+          }
+          Console.Write("\r");
+          Console.Out.Flush();
+        }
+      
+
+
+      }
+
+    }
+
+
     #region Register Names
     public const int ZERO = 0;
     public const int AT = 1;
@@ -67,7 +141,7 @@ namespace org.ibex.nestedvm
       virtmem = new BasicVirtualMemoryImplementation();
       syscall = new BasicSysCallDispatcher();
       virtfs = new BasicVirtualFileSystemImplementation();
-      procMgr = null;
+      procMgr = new BasicProcessManager();
     }
 
     public IProcessManager GetProcMgr()

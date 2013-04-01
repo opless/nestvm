@@ -422,14 +422,14 @@ namespace org.ibex.nestedvm.util
 			}
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public int read() throws IOException
-			public virtual int read()
+			public override int read()
 			{
 				sbyte[] buf = new sbyte[1];
 				return read(buf,0,1) == -1 ? - 1 : (buf[0] & 0xff);
 			}
 //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
 //ORIGINAL LINE: public int read(byte[] b, int off, int len) throws IOException
-			public virtual int read(sbyte[] b, int off, int len)
+			public override int read(sbyte[] b, int off, int len)
 			{
 				int n = outerInstance.data.read(b,off,Math.Min(len,bytesLeft()));
 				if (n > 0)
@@ -438,7 +438,7 @@ namespace org.ibex.nestedvm.util
 				}
 					return n;
 			}
-			public virtual void close()
+			public override void close()
 			{
 				outerInstance.sectionReaderActive = false;
 			}

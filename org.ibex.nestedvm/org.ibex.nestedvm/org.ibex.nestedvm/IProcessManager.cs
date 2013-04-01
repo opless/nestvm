@@ -13,6 +13,10 @@ namespace org.ibex.nestedvm
 {
   public interface IProcessManager
   {
+    int GetProcessId(ICpuInterpreter interp);
+
+    int Exit(ICpuInterpreter interp, int value);
+
     int UMask(int mode);
 
     int SysCtl(ICpuInterpreter interp, int nameAddr, int nameLen, int oldP, int oldLenAddr, int newP, int newLen);

@@ -18,6 +18,8 @@ namespace org.ibex.nestedvm
     IVirtualMemory GetVirtMem();
 
     IProcessManager GetProcMgr();
+
+    void LoadImage(string name);
   }
 }
 
