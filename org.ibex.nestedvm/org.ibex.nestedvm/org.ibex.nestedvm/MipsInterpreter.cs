@@ -80,7 +80,12 @@ namespace org.ibex.nestedvm
           Console.Out.Flush();
         }
       
+        pc = elf.header.entry;
+        registers[GP] = gp;
 
+        Console.WriteLine("PC: {0:X8}",pc);
+        Console.WriteLine("SP: {0:X8}",registers[SP]);
+        Console.WriteLine("GP: {0:X8}",registers[GP]);
 
       }
 

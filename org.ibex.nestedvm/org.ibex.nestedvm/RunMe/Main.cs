@@ -8,6 +8,7 @@
 //
 //
 using System;
+using org.ibex.nestedvm;
 
 namespace RunMe
 {
@@ -15,7 +16,11 @@ namespace RunMe
   {
     public static void Main(string[] args)
     {
-      Console.WriteLine("Hello World!");
+      ICpuInterpreter cpu = new MipsInterpreter();
+
+      cpu.LoadImage("test.elf");
+
+     
     }
   }
 }
